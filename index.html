@@ -1002,13 +1002,12 @@ function buildAnatOptions(correct){
   let opts;
   if(correct === NONE_KEY){
     opts = shuffle(ANAT_CONDITIONS).slice(0,3);
-    opts.push(NONE_KEY);
   } else {
     const pool = ANAT_CONDITIONS.filter(x=>x!==correct);
-    opts = shuffle(pool).slice(0,2);
-    opts.push(correct, NONE_KEY);
+    opts = shuffle([correct, ...shuffle(pool).slice(0,2)]);
   }
-  return shuffle(opts);
+  opts.push(NONE_KEY);
+  return opts;
 }
 
 function shuffle(arr){
