@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>トリアージ演習場 — START法・PAT法トレーニング</title>
+<style>
+  :root{
+    --bg:#12161b;
+    --bg-grid:#171c22;
+    --panel:#1b2129;
+    --panel-alt:#232a33;
+    --border:#333c47;
+    --text:#eceff2;
+    --muted:#8b96a3;
+    --accent:#3fb8b3;
+    --accent-dim:#2a5f5d;
+    --warn:#e0a83d;
+    --tag-green:#3fa34d;
+    --tag-green-dim:#1e3d24;
+    --tag-yellow:#e0b23d;
+    --tag-yellow-dim:#4a3c17;
+    --tag-red:#d64545;
+    --tag-red-dim:#4a1e1e;
+    --tag-black:#7d838a;
+    --tag-black-dim:#2b2e33;
+    --font-jp:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic UI","Noto Sans JP",sans-serif;
+    --font-tag:"Helvetica Neue",Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 15% 0%, rgba(63,184,179,0.06), transparent 40%),
+      repeating-linear-gradient(0deg, var(--bg-grid) 0px, var(--bg-grid) 1px, var(--bg) 1px, var(--bg) 28px),
+      repeating-linear-gradient(90deg, var(--bg-grid) 0px, var(--bg-grid) 1px, var(--bg) 1px, var(--bg) 28px);
+    color:var(--text);
+    font-family:var(--font-jp);
+    min-height:100vh;
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  #app{
+    max-width:640px;
+    margin:0 auto;
+    padding:20px 16px 60px;
+  }
+
+  /* ---------- Header ---------- */
+  .app-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    border-bottom:1px solid var(--border);
+    padding-bottom:14px;
+    margin-bottom:22px;
+    gap:12px;
+  }
+  .app-header .brand{
+    font-family:var(--font-tag);
+    font-size:11px;
+    letter-spacing:.14em;
+    color:var(--accent);
+    margin:0 0 4px;
+  }
+  .app-header h1{
+    font-size:21px;
+    margin:0;
+    font-weight:700;
+    letter-spacing:.02em;
+  }
+  .ref-btn{
+    flex-shrink:0;
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--muted);
+    font-family:var(--font-jp);
+    font-size:12.5px;
+    padding:8px 12px;
+    border-radius:3px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .ref-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+  /* ---------- Mode select ---------- */
+  .mode-grid{display:flex;flex-direction:column;gap:12px;}
+  .mode-card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-left:4px solid var(--accent);
+    border-radius:2px;
+    padding:16px 18px;
+    cursor:pointer;
+    transition:background .15s, border-color .15s;
+    text-align:left;
+  }
+  .mode-card:hover{background:var(--panel-alt);}
+  .mode-card .m-eyebrow{
+    font-family:var(--font-tag);
+    font-size:10.5px;
+    letter-spacing:.12em;
+    color:var(--text);
+    margin-bottom:6px;
+  }
+  .mode-card h3{margin:0 0 6px;font-size:16.5px;color:var(--text);}
+  .mode-card p{margin:0;color:var(--text);font-size:13.5px;}
+  .mode-card.pat{border-left-color:var(--tag-yellow);}
+  .mode-card.mix{border-left-color:var(--tag-red);}
+
+  .intro-note{
+    color:var(--text);
+    font-size:13px;
+    margin:-6px 0 20px;
+  }
+
+  /* ---------- Game top bar ---------- */
+  .game-topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:14px;
+    font-family:var(--font-tag);
+    font-size:12px;
+    color:var(--muted);
+  }
+  .progress-track{
+    flex:1;
+    height:4px;
+    background:var(--panel-alt);
+    margin:0 12px;
+    border-radius:2px;
+    overflow:hidden;
+  }
+  .progress-fill{height:100%;background:var(--accent);transition:width .3s;}
+  .score-pill{white-space:nowrap;}
+  .score-pill b{color:var(--text);}
+  .endless-badge{
+    flex-shrink:0;
+    font-family:var(--font-tag);
+    font-size:10px;
+    letter-spacing:.1em;
+    background:var(--accent-dim);
+    color:var(--accent);
+    padding:3px 7px;
+    border-radius:2px;
+    margin-right:8px;
+  }
+  .quit-btn{
+    flex-shrink:0;
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--muted);
+    font-family:var(--font-jp);
+    font-size:11.5px;
+    padding:5px 10px;
+    border-radius:3px;
+    cursor:pointer;
+    margin-left:10px;
+    white-space:nowrap;
+  }
+  .quit-btn:hover{border-color:#ff9b9b;color:#ff9b9b;}
+
+  .timer-wrap{
+    height:5px;
+    background:var(--panel-alt);
+    border-radius:3px;
+    overflow:hidden;
+    margin-bottom:16px;
+  }
+  .timer-fill{height:100%;background:var(--warn);width:100%;transition:width 1s linear;}
+
+  /* ---------- Patient card ---------- */
+  .card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:3px;
+    position:relative;
+    overflow:hidden;
+  }
+  .tab-strip{
+    display:flex;
+    border-bottom:1px dashed var(--border);
+  }
+  .tab-strip .tab{
+    flex:1;
+    text-align:center;
+    padding:7px 0;
+    font-family:var(--font-tag);
+    font-size:10.5px;
+    letter-spacing:.08em;
+    color:var(--muted);
+    background:var(--panel-alt);
+    transition:opacity .4s, filter .4s;
+  }
+  .tab-strip .tab.green{border-top:3px solid var(--tag-green);}
+  .tab-strip .tab.yellow{border-top:3px solid var(--tag-yellow);}
+  .tab-strip .tab.red{border-top:3px solid var(--tag-red);}
+  .tab-strip .tab.black{border-top:3px solid var(--tag-black);}
+  .tab-strip .tab.torn{opacity:.22;filter:grayscale(1);}
+  .tab-strip .tab.kept{background:var(--panel);color:var(--text);font-weight:700;}
+
+  .card-body{padding:20px 20px 22px;}
+  .case-label{
+    font-family:var(--font-tag);
+    font-size:10.5px;
+    letter-spacing:.1em;
+    color:var(--muted);
+    margin-bottom:10px;
+  }
+  .vignette{font-size:15px;margin:0 0 16px;}
+  .vitals{
+    background:var(--panel-alt);
+    border-radius:3px;
+    padding:12px 14px;
+    margin-bottom:18px;
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+  }
+  .vitals .v-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:13.5px;
+  }
+  .vitals .v-row .k{color:var(--muted);}
+  .vitals .v-row .val{font-weight:700;font-family:var(--font-tag);}
+  .findings-title{font-size:12.5px;color:var(--muted);margin:0 0 8px;}
+  .findings-list{margin:0 0 18px;padding-left:20px;font-size:14px;}
+  .findings-list li{margin-bottom:4px;}
+
+  .answer-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .answer-grid.pat{grid-template-columns:1fr 1fr;}
+  .ans-btn{
+    border:1px solid var(--border);
+    background:var(--panel-alt);
+    color:var(--text);
+    padding:14px 8px;
+    border-radius:3px;
+    font-family:var(--font-jp);
+    font-size:14.5px;
+    font-weight:700;
+    cursor:pointer;
+    text-align:center;
+    transition:transform .1s, border-color .15s;
+  }
+  .ans-btn:hover{transform:translateY(-1px);}
+  .ans-btn .en{
+    display:block;
+    font-family:var(--font-tag);
+    font-size:9.5px;
+    font-weight:400;
+    letter-spacing:.1em;
+    margin-top:3px;
+    opacity:.7;
+  }
+  .ans-btn.c-green{border-left:4px solid var(--tag-green);}
+  .ans-btn.c-yellow{border-left:4px solid var(--tag-yellow);}
+  .ans-btn.c-red{border-left:4px solid var(--tag-red);}
+  .ans-btn.c-black{border-left:4px solid var(--tag-black);}
+  .ans-btn:disabled{cursor:default;opacity:.5;transform:none;}
+
+  .crit-group-title{
+    font-family:var(--font-tag);
+    font-size:11px;
+    letter-spacing:.06em;
+    color:var(--muted);
+    margin:16px 0 8px;
+  }
+  .crit-group-title:first-child{margin-top:0;}
+  .crit-list{display:flex;flex-direction:column;gap:8px;}
+  .crit-btn{
+    display:block;
+    width:100%;
+    text-align:left;
+    background:var(--panel-alt);
+    border:1px solid var(--border);
+    border-left:3px solid var(--accent);
+    color:var(--text);
+    padding:11px 14px;
+    border-radius:3px;
+    font-family:var(--font-jp);
+    font-size:13.5px;
+    line-height:1.5;
+    cursor:pointer;
+    transition:transform .1s, background .15s;
+  }
+  .crit-btn:hover{transform:translateX(2px);background:var(--panel);}
+  .crit-btn.none-btn{
+    display:block;
+    width:100%;
+    margin-top:16px;
+    border-left:3px solid var(--tag-yellow);
+    font-weight:700;
+    text-align:center;
+  }
+
+  /* ---------- Feedback ---------- */
+  .feedback{
+    margin-top:18px;
+    padding-top:16px;
+    border-top:1px dashed var(--border);
+  }
+  .verdict{
+    display:inline-block;
+    font-family:var(--font-tag);
+    font-size:12px;
+    letter-spacing:.1em;
+    padding:4px 10px;
+    border-radius:2px;
+    margin-bottom:10px;
+  }
+  .verdict.ok{background:var(--accent-dim);color:var(--accent);}
+  .verdict.ng{background:var(--tag-red-dim);color:#ff9b9b;}
+
+  .stamp{
+    display:inline-block;
+    transform:rotate(-3deg);
+    border:3px solid var(--stamp-color, var(--accent));
+    color:var(--stamp-color, var(--accent));
+    padding:6px 16px;
+    border-radius:6px;
+    font-family:var(--font-tag);
+    font-weight:700;
+    letter-spacing:.1em;
+    font-size:15px;
+    margin-bottom:12px;
+  }
+  .explain{font-size:14px;color:var(--text);margin:0 0 18px;}
+  .explain b{color:var(--accent);}
+
+  .path-title{
+    font-family:var(--font-tag);
+    font-size:11px;
+    letter-spacing:.06em;
+    color:var(--muted);
+    margin:4px 0 8px;
+  }
+  .path-trail{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:2px;
+    margin:0 0 18px;
+    background:var(--panel-alt);
+    border-radius:3px;
+    padding:12px 14px;
+  }
+  .path-step{
+    font-size:13px;
+    color:var(--text);
+    padding:2px 0;
+  }
+  .path-step.path-alert{
+    font-weight:700;
+    padding:2px 8px;
+    border-radius:3px;
+    margin:1px 0;
+  }
+  .path-alert.tag-green{background:var(--tag-green-dim);color:var(--tag-green);}
+  .path-alert.tag-yellow{background:var(--tag-yellow-dim);color:var(--tag-yellow);}
+  .path-alert.tag-red{background:var(--tag-red-dim);color:var(--tag-red);}
+  .path-alert.tag-black{background:var(--tag-black-dim);color:var(--tag-black);}
+  .path-arrow{
+    color:var(--muted);
+    font-size:12px;
+    line-height:1;
+    padding-left:2px;
+  }
+  .path-final{
+    font-family:var(--font-tag);
+    font-weight:700;
+    font-size:13.5px;
+    padding:3px 10px;
+    border-radius:3px;
+    margin-top:2px;
+  }
+  .path-final.tag-green{background:var(--tag-green-dim);color:var(--tag-green);}
+  .path-final.tag-yellow{background:var(--tag-yellow-dim);color:var(--tag-yellow);}
+  .path-final.tag-red{background:var(--tag-red-dim);color:var(--tag-red);}
+  .path-final.tag-black{background:var(--tag-black-dim);color:var(--tag-black);}
+
+  .next-btn{
+    width:100%;
+    background:var(--accent);
+    color:#0d1418;
+    border:none;
+    padding:13px;
+    font-family:var(--font-jp);
+    font-weight:700;
+    font-size:14.5px;
+    border-radius:3px;
+    cursor:pointer;
+  }
+  .next-btn:hover{filter:brightness(1.08);}
+
+  /* ---------- Result screen ---------- */
+  .result-hero{
+    text-align:center;
+    padding:26px 10px 10px;
+  }
+  .result-hero .big-score{
+    font-family:var(--font-tag);
+    font-size:52px;
+    font-weight:700;
+    line-height:1;
+  }
+  .result-hero .big-score span{font-size:22px;color:var(--muted);}
+  .result-tier{
+    font-size:15.5px;
+    font-weight:700;
+    color:var(--accent);
+    margin:8px 0 2px;
+  }
+  .result-msg{color:var(--muted);font-size:13.5px;margin:0 0 22px;}
+  .review-item{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:3px;
+    padding:12px 14px;
+    margin-bottom:10px;
+    font-size:13px;
+  }
+  .review-item .ri-top{
+    display:flex;
+    justify-content:space-between;
+    font-family:var(--font-tag);
+    font-size:11px;
+    color:var(--muted);
+    margin-bottom:6px;
+  }
+  .result-actions{display:flex;gap:10px;margin-top:18px;}
+  .result-actions button{flex:1;}
+  .btn-secondary{
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:13px;
+    font-family:var(--font-jp);
+    font-weight:700;
+    font-size:14px;
+    border-radius:3px;
+    cursor:pointer;
+  }
+
+  /* ---------- Reference modal ---------- */
+  .modal-overlay{
+    position:fixed;inset:0;
+    background:rgba(8,10,13,.72);
+    display:flex;align-items:flex-end;justify-content:center;
+    z-index:50;
+  }
+  .modal-sheet{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-bottom:none;
+    border-radius:8px 8px 0 0;
+    max-width:640px;width:100%;
+    max-height:82vh;
+    overflow-y:auto;
+    padding:20px 20px 28px;
+  }
+  .modal-sheet h2{margin:0 0 4px;font-size:17px;}
+  .modal-sheet .sub{color:var(--muted);font-size:12.5px;margin-bottom:16px;}
+  .modal-close{
+    display:block;margin-left:auto;
+    background:none;border:none;color:var(--muted);
+    font-size:13px;cursor:pointer;padding:6px 0;
+  }
+  .flow-step{
+    display:flex;gap:10px;
+    padding:10px 0;
+    border-bottom:1px solid var(--border);
+    font-size:13.5px;
+  }
+  .flow-step:last-child{border-bottom:none;}
+  .flow-step .fs-num{
+    flex-shrink:0;
+    width:22px;height:22px;border-radius:50%;
+    background:var(--panel-alt);
+    color:var(--accent);
+    font-family:var(--font-tag);
+    font-size:12px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .flow-step .fs-body b{display:block;margin-bottom:2px;}
+  .flow-step .fs-body .arrow{color:var(--muted);font-size:12.5px;}
+  .tag-chip{
+    display:inline-block;
+    font-family:var(--font-tag);
+    font-size:11px;
+    padding:2px 7px;
+    border-radius:2px;
+    font-weight:700;
+  }
+  .tag-chip.green{background:var(--tag-green-dim);color:var(--tag-green);}
+  .tag-chip.yellow{background:var(--tag-yellow-dim);color:var(--tag-yellow);}
+  .tag-chip.red{background:var(--tag-red-dim);color:var(--tag-red);}
+  .tag-chip.black{background:var(--tag-black-dim);color:var(--tag-black);}
+
+  .pat-rule{
+    background:var(--panel-alt);
+    border-radius:3px;
+    padding:12px 14px;
+    margin-top:14px;
+    font-size:13px;
+  }
+  .pat-rule ul{margin:6px 0 0;padding-left:18px;}
+  .pat-rule li{margin-bottom:4px;}
+
+  @media (max-width:400px){
+    .result-hero .big-score{font-size:42px;}
+    .answer-grid{grid-template-columns:1fr 1fr;}
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ============================= DATA ============================= */
+
+const START_CASES = [
+  {
+    vignette: "40代男性。倒壊した家屋の下敷きになりかけたが、自力で瓦礫から這い出し、周囲を歩き回っている。呼びかけにもはっきり応答する。",
+    vitals: [["歩行","自力歩行 可能"]],
+    tag: "green",
+    path: ["歩行可能？ → はい"],
+    explain: "自力歩行が可能な傷病者は、START法の最初のふるい分けで<b>緑（軽処置群）</b>に分類します。他の項目を確認するまでもなく緑タッグです。"
+  },
+  {
+    vignette: "60代男性。倒壊した建物の下から救出された。歩行不可。呼びかけても反応がなく、胸郭の動きも見られない。頭部後屈顎先挙上で気道を確保したが、それでも呼吸は確認できなかった。",
+    vitals: [["歩行","不可"],["呼吸（気道確保後）","なし"]],
+    tag: "black",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → なし", "気道開放にて呼吸は？ → なし"],
+    explain: "気道を確保しても呼吸が再開しない場合は、救命が極めて困難と判断し<b>黒（死亡・救命困難群）</b>に分類します。つらい判断ですが、限られた人手を他の助かる可能性がある傷病者に振り向けるためのルールです。"
+  },
+  {
+    vignette: "20代女性。頭部を負傷し倒れている。歩行不可。声をかけても反応がなく、一見呼吸していないように見えたが、頭部後屈顎先挙上で気道を確保すると呼吸が確認できた。",
+    vitals: [["歩行","不可"],["呼吸（気道確保前）","確認できず"],["呼吸（気道確保後）","あり"]],
+    tag: "red",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → なし", "気道開放にて呼吸は？ → あり"],
+    explain: "気道確保によって呼吸が再開した場合は<b>赤（最優先治療群）</b>です。気道閉塞は数分で致命的になり得るため、最優先で搬送・処置が必要と判断します。"
+  },
+  {
+    vignette: "30代男性。歩行不可。自発呼吸はあるが、呼吸数を数えると1分間に34回と速い。",
+    vitals: [["歩行","不可"],["呼吸","あり"],["呼吸数","34回/分"]],
+    tag: "red",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 34回/分（9回/分以下 or 30回/分以上）"],
+    explain: "呼吸数が<b>30回/分以上、または9回/分以下</b>の場合は赤に分類します。今回は34回/分のため<b>赤（最優先治療群）</b>です。"
+  },
+  {
+    vignette: "50代女性。歩行不可。呼吸数は20回/分で正常範囲内。橈骨動脈を触知しようとしたが、まったく触れない。",
+    vitals: [["歩行","不可"],["呼吸数","20回/分"],["橈骨動脈","触知せず"]],
+    tag: "red",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 20回/分（10-29回/分）", "橈骨動脈は触知できるか？ → 触知せず"],
+    explain: "橈骨動脈が触知できない場合は循環不全とみなし<b>赤（最優先治療群）</b>に分類します。START変法では毛細血管再充満時間（CRT）ではなく、橈骨動脈の触知の有無で判断します。"
+  },
+  {
+    vignette: "70代男性。歩行不可。呼吸数18回/分、橈骨動脈は良好に触知できる。しかし「手を握ってください」と声をかけても指示に従うことができない。",
+    vitals: [["歩行","不可"],["呼吸数","18回/分"],["橈骨動脈","良好"],["従命反応","なし"]],
+    tag: "red",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 18回/分（10-29回/分）", "橈骨動脈は触知できるか？ → 触知可能", "従命反応は？ → 応じない"],
+    explain: "呼吸・循環に問題がなくても、簡単な指示に従えない（従命反応がない）場合は意識障害ありとして<b>赤（最優先治療群）</b>に分類します。"
+  },
+  {
+    vignette: "40代女性。下肢を骨折し歩行できない。呼吸数は16回/分、橈骨動脈も良好に触知できる。「手を握ってください」の指示にもしっかり応じられる。",
+    vitals: [["歩行","不可"],["呼吸数","16回/分"],["橈骨動脈","良好"],["従命反応","あり"]],
+    tag: "yellow",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 16回/分（10-29回/分）", "橈骨動脈は触知できるか？ → 触知可能", "従命反応は？ → 応じる"],
+    explain: "呼吸・循環・意識のいずれにも異常がなければ、歩行できなくても<b>黄（非緊急治療群）</b>に分類します。骨折はあっても生命の危機は差し迫っていないと判断します。"
+  },
+  {
+    vignette: "10代男性。転倒により顔面から出血しているが、自分の足で歩いて避難してきた。呼びかけにも普通に会話できる。",
+    vitals: [["歩行","自力歩行 可能"]],
+    tag: "green",
+    path: ["歩行可能？ → はい"],
+    explain: "出血はあっても自力歩行できるため、START法では<b>緑（軽処置群）</b>です。歩行可能かどうかが最初の絶対的な分岐点になります。"
+  },
+  {
+    vignette: "50代女性。倒木の下敷きになりかけたが自力で抜け出し、足を引きずりながらも自分の足で避難してきた。",
+    vitals: [["歩行","自力歩行 可能（引きずり歩行）"]],
+    tag: "green",
+    path: ["歩行可能？ → はい"],
+    explain: "足を引きずっていても、自力で歩ける以上は<b>緑（軽処置群）</b>です。START法では『歩けるかどうか』のみで最初のふるい分けを行います。"
+  },
+  {
+    vignette: "20代男性。工事現場の資材が倒れ、腕に軽い擦り傷を負ったが、自分の足で歩いて安全な場所まで移動した。",
+    vitals: [["歩行","自力歩行 可能"]],
+    tag: "green",
+    path: ["歩行可能？ → はい"],
+    explain: "軽傷で自力歩行できる傷病者は<b>緑（軽処置群）</b>です。緑タッグの傷病者が現場で最大多数になりやすいことも覚えておきましょう。"
+  },
+  {
+    vignette: "80代女性。倒壊した家屋から救出された。歩行不可。呼びかけても反応がなく、自発呼吸も見られない。頭部後屈顎先挙上で気道を確保しても呼吸は再開しなかった。",
+    vitals: [["歩行","不可"],["呼吸（気道確保後）","なし"]],
+    tag: "black",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → なし", "気道開放にて呼吸は？ → なし"],
+    explain: "気道確保を行っても呼吸が再開しない場合は<b>黒（死亡・救命困難群）</b>に分類します。年齢や状況にかかわらず、この基準は変わりません。"
+  },
+  {
+    vignette: "30代男性。工場の爆発事故で意識を失って倒れている。歩行不可。一見呼吸が止まっているように見えたが、頭部後屈顎先挙上で気道を確保すると呼吸が確認できた。",
+    vitals: [["歩行","不可"],["呼吸（気道確保前）","確認できず"],["呼吸（気道確保後）","あり"]],
+    tag: "red",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → なし", "気道開放にて呼吸は？ → あり"],
+    explain: "気道確保によって呼吸が再開した場合は<b>赤（最優先治療群）</b>です。気道閉塞は数分で致命的になり得るため、最優先で搬送・処置が必要と判断します。"
+  },
+  {
+    vignette: "60代男性。歩行不可。自発呼吸はあるが、呼吸数を数えると1分間に6回とかなり遅い。",
+    vitals: [["歩行","不可"],["呼吸","あり"],["呼吸数","6回/分"]],
+    tag: "red",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 6回/分（9回/分以下 or 30回/分以上）"],
+    explain: "呼吸数が<b>9回/分以下</b>の場合も赤に分類します。速すぎる呼吸だけでなく、遅すぎる呼吸も換気不全のサインです。<b>赤（最優先治療群）</b>です。"
+  },
+  {
+    vignette: "40代男性。歩行不可。呼吸数は22回/分で正常範囲内。腕から大量に出血しており、橈骨動脈を触知しようとしたが、まったく触れない。",
+    vitals: [["歩行","不可"],["呼吸数","22回/分"],["橈骨動脈","触知せず"]],
+    tag: "red",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 22回/分（10-29回/分）", "橈骨動脈は触知できるか？ → 触知せず"],
+    explain: "橈骨動脈が触知できない場合は循環不全とみなし<b>赤（最優先治療群）</b>に分類します。START変法では毛細血管再充満時間（CRT）ではなく、橈骨動脈の触知の有無で判断します。活動性出血があれば、可能な範囲で圧迫止血を並行して行います。"
+  },
+  {
+    vignette: "20代女性。歩行不可。呼吸数18回/分、橈骨動脈は良好に触知できる。しかし呼びかけにも反応せず、目も開けない。",
+    vitals: [["歩行","不可"],["呼吸数","18回/分"],["橈骨動脈","良好"],["従命反応","反応なし・開眼なし"]],
+    tag: "red",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 18回/分（10-29回/分）", "橈骨動脈は触知できるか？ → 触知可能", "従命反応は？ → 応じない"],
+    explain: "呼吸・循環に問題がなくても、呼びかけに反応せず簡単な指示に従えない場合は意識障害ありとして<b>赤（最優先治療群）</b>に分類します。"
+  },
+  {
+    vignette: "60代男性。転倒により頭部を打撲し、めまいを訴えて歩行できない。呼吸数は18回/分、橈骨動脈も良好に触知できる。「目を開けてください」の指示にもしっかり応じられる。",
+    vitals: [["歩行","不可"],["呼吸数","18回/分"],["橈骨動脈","良好"],["従命反応","あり"]],
+    tag: "yellow",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 18回/分（10-29回/分）", "橈骨動脈は触知できるか？ → 触知可能", "従命反応は？ → 応じる"],
+    explain: "呼吸・循環・意識のいずれにも異常がなければ、歩行できず頭部打撲があっても<b>黄（非緊急治療群）</b>に分類します。ただし頭部外傷は急変しうるため、継続的な観察が必要です。"
+  },
+  {
+    vignette: "70代女性。地震で家具が倒れてきたが、自力で避難所まで歩いてきた。",
+    tag: "green",
+    path: ["歩行可能？ → はい"],
+    explain: "自力歩行できる傷病者は<b>緑（軽処置群）</b>です。高齢でも歩行可能であればまず緑に分類します。"
+  },
+  {
+    vignette: "30代女性。火災現場から煙を吸ったものの、自分の足で外に出てきた。呼びかけにもはっきり応答する。",
+    tag: "green",
+    path: ["歩行可能？ → はい"],
+    explain: "自力歩行できるため<b>緑（軽処置群）</b>です。ただし煙を吸っている場合は、緑であっても呼吸状態の変化に注意が必要です。"
+  },
+  {
+    vignette: "40代男性。転倒して手首を痛めたが、普通に歩いて医療スタッフのもとへやってきた。",
+    tag: "green",
+    path: ["歩行可能？ → はい"],
+    explain: "自力歩行できる傷病者は<b>緑（軽処置群）</b>です。骨折が疑われても、歩行可能かどうかが最初の分岐点になります。"
+  },
+  {
+    vignette: "20代女性。洪水の際に浅瀬を歩いて避難し、擦り傷程度で済んでいる。",
+    tag: "green",
+    path: ["歩行可能？ → はい"],
+    explain: "自力歩行できるため<b>緑（軽処置群）</b>です。軽傷で歩行可能な傷病者はSTART法では最初のふるい分けで緑になります。"
+  },
+  {
+    vignette: "50代男性。工場の軽微な事故で足首をひねったが、自力で歩いて集合場所に来た。",
+    tag: "green",
+    path: ["歩行可能？ → はい"],
+    explain: "自力歩行できる傷病者は<b>緑（軽処置群）</b>です。"
+  },
+  {
+    vignette: "70代男性。倒壊した建物の下敷きになり救出された。歩行不可。呼びかけに反応がなく、頭部後屈顎先挙上で気道を確保しても呼吸が確認できない。",
+    tag: "black",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → なし", "気道開放にて呼吸は？ → なし"],
+    explain: "気道を確保しても呼吸が再開しない場合は<b>黒（死亡・救命困難群）</b>に分類します。"
+  },
+  {
+    vignette: "50代女性。津波にのまれ救助された。歩行不可。自発呼吸がなく、気道を確保しても呼吸は戻らなかった。",
+    tag: "black",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → なし", "気道開放にて呼吸は？ → なし"],
+    explain: "気道確保を行っても呼吸が再開しない場合は<b>黒（死亡・救命困難群）</b>に分類します。"
+  },
+  {
+    vignette: "60代男性。火災現場で煙を吸って倒れていた。歩行不可。呼びかけに反応がなく、気道を確保しても呼吸が確認できない。",
+    tag: "black",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → なし", "気道開放にて呼吸は？ → なし"],
+    explain: "気道確保後も呼吸が再開しない場合は<b>黒（死亡・救命困難群）</b>に分類します。"
+  },
+  {
+    vignette: "20代男性。土砂に埋もれて救出された。歩行不可。一見呼吸していないように見えたが、頭部後屈顎先挙上で気道を確保すると呼吸が確認できた。",
+    tag: "red",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → なし", "気道開放にて呼吸は？ → あり"],
+    explain: "気道確保によって呼吸が再開した場合は<b>赤（最優先治療群）</b>です。気道閉塞は数分で致命的になり得るため最優先で対応します。"
+  },
+  {
+    vignette: "30代女性。ビルの倒壊に巻き込まれた。歩行不可。自発呼吸が確認できなかったが、頭部後屈顎先挙上を行うと呼吸が戻った。",
+    tag: "red",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → なし", "気道開放にて呼吸は？ → あり"],
+    explain: "気道確保で呼吸が戻った場合は<b>赤（最優先治療群）</b>に分類します。"
+  },
+  {
+    vignette: "40代男性。交通事故で頭部を強打し倒れている。歩行不可。呼吸が止まっているように見えたが、気道を確保すると呼吸が再開した。",
+    tag: "red",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → なし", "気道開放にて呼吸は？ → あり"],
+    explain: "気道確保で呼吸が再開した場合は<b>赤（最優先治療群）</b>に分類します。"
+  },
+  {
+    vignette: "50代女性。歩行不可。自発呼吸はあるが、呼吸数を測ると1分間に32回とかなり速い。",
+    tag: "red",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 32回/分（9回/分以下 or 30回/分以上）"],
+    explain: "呼吸数が30回/分以上の場合は<b>赤（最優先治療群）</b>に分類します。"
+  },
+  {
+    vignette: "60代男性。歩行不可。呼吸数を数えると1分間に40回で、肩を使って呼吸している。",
+    tag: "red",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 40回/分（9回/分以下 or 30回/分以上）"],
+    explain: "呼吸数が30回/分以上、かつ努力呼吸を伴う場合は特に危険な状態です。<b>赤（最優先治療群）</b>に分類します。"
+  },
+  {
+    vignette: "30代男性。歩行不可。パニック状態で呼吸数が1分間に35回まで上昇している。",
+    tag: "red",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 35回/分（9回/分以下 or 30回/分以上）"],
+    explain: "呼吸数が30回/分以上の場合は<b>赤（最優先治療群）</b>に分類します。パニックによる過呼吸に見えても、START法の基準では赤と判断します。"
+  },
+  {
+    vignette: "70代女性。歩行不可。呼吸数を数えると1分間に7回とかなり遅い。",
+    tag: "red",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 7回/分（9回/分以下 or 30回/分以上）"],
+    explain: "呼吸数が9回/分以下の場合も<b>赤（最優先治療群）</b>に分類します。遅すぎる呼吸も換気不全のサインです。"
+  },
+  {
+    vignette: "40代男性。頭部外傷後、呼吸数が1分間に5回まで低下している。",
+    tag: "red",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 5回/分（9回/分以下 or 30回/分以上）"],
+    explain: "呼吸数が9回/分以下の場合は<b>赤（最優先治療群）</b>に分類します。頭部外傷による呼吸中枢の抑制が疑われます。"
+  },
+  {
+    vignette: "50代男性。歩行不可。呼吸数は24回/分で正常範囲内。橈骨動脈を触知しようとしたが、まったく触れない。",
+    tag: "red",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 24回/分（10-29回/分）", "橈骨動脈は触知できるか？ → 触知せず"],
+    explain: "橈骨動脈が触知できない場合は循環不全とみなし<b>赤（最優先治療群）</b>に分類します。"
+  },
+  {
+    vignette: "60代女性。下肢からの出血が続いている。歩行不可。橈骨動脈を触知しようとしたが触れない。",
+    tag: "red",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 正常範囲内（10-29回/分）", "橈骨動脈は触知できるか？ → 触知せず"],
+    explain: "活動性出血に伴い橈骨動脈が触知できない場合は<b>赤（最優先治療群）</b>に分類します。可能な範囲で圧迫止血も並行します。"
+  },
+  {
+    vignette: "20代男性。歩行不可。呼吸数は18回/分で正常範囲内。橈骨動脈を触知しようとしたが触れない。",
+    tag: "red",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 18回/分（10-29回/分）", "橈骨動脈は触知できるか？ → 触知せず"],
+    explain: "橈骨動脈が触知できない場合は<b>赤（最優先治療群）</b>に分類します。"
+  },
+  {
+    vignette: "80代女性。歩行不可。呼吸数16回/分、橈骨動脈は良好に触知できる。しかし呼びかけにも痛み刺激にも反応しない。",
+    tag: "red",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 16回/分（10-29回/分）", "橈骨動脈は触知できるか？ → 触知可能", "従命反応は？ → 応じない"],
+    explain: "呼吸・循環に問題がなくても、反応がなく簡単な指示に従えない場合は<b>赤（最優先治療群）</b>に分類します。"
+  },
+  {
+    vignette: "30代男性。歩行不可。呼吸数20回/分、橈骨動脈は良好。しかし「手を握ってください」の指示に応じられない。",
+    tag: "red",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 20回/分（10-29回/分）", "橈骨動脈は触知できるか？ → 触知可能", "従命反応は？ → 応じない"],
+    explain: "簡単な指示に従えない場合は意識障害ありとして<b>赤（最優先治療群）</b>に分類します。"
+  },
+  {
+    vignette: "40代女性。歩行不可。呼吸数18回/分、橈骨動脈は良好に触知できる。しかし意識がもうろうとしていて指示に従えない。",
+    tag: "red",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 18回/分（10-29回/分）", "橈骨動脈は触知できるか？ → 触知可能", "従命反応は？ → 応じない"],
+    explain: "従命反応がない場合は意識障害ありとして<b>赤（最優先治療群）</b>に分類します。"
+  },
+  {
+    vignette: "60代女性。転倒して肩を脱臼し歩行できない。呼吸数20回/分、橈骨動脈も良好に触知できる。指示にもしっかり応じられる。",
+    tag: "yellow",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 20回/分（10-29回/分）", "橈骨動脈は触知できるか？ → 触知可能", "従命反応は？ → 応じる"],
+    explain: "呼吸・循環・意識のいずれにも異常がなければ<b>黄（非緊急治療群）</b>に分類します。"
+  },
+  {
+    vignette: "30代男性。足首を骨折し歩行できない。呼吸数16回/分、橈骨動脈も良好。指示にもしっかり応じられる。",
+    tag: "yellow",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 16回/分（10-29回/分）", "橈骨動脈は触知できるか？ → 触知可能", "従命反応は？ → 応じる"],
+    explain: "呼吸・循環・意識のいずれにも異常がなければ、骨折があっても<b>黄（非緊急治療群）</b>に分類します。"
+  }
+];
+
+
+/* --- PAT法：第1段階（生理学的評価） --- */
+const PHYS_ORDER = ["意識","気道","呼吸","循環","体温"];
+const PHYS_LABELS = {
+  "意識": "意識：呼びかけへの反応がない、または不穏（JCS2桁以上／GCS8以下に相当）",
+  "気道": "気道：舌根沈下や気道閉塞がある",
+  "呼吸": "呼吸：浅く速い・深く遅い・不規則、胸の上がりや呼吸音に左右差、30回/分以上または9回/分以下、SpO2 90%未満のいずれか",
+  "循環": "循環：橈骨動脈が触れない・弱い・速い、皮膚蒼白・冷感・湿潤、活動性出血、脈拍120以上/50未満、血圧90未満/200以上のいずれか",
+  "体温": "体温：35℃以下"
+};
+const NONE_KEY = "NONE";
+const NONE_LABEL = "該当項目なし → 黄タッグを維持";
+
+const PHYS_CASES = [
+  {
+    vignette: "黄タッグの傷病者。呼びかけても反応がなく、興奮していて落ち着きなく動き回っている。",
+    correct: "意識",
+    explain: "呼びかけへの反応がない、または不穏な状態はJCS2桁以上相当の意識障害を示し、生理学的評価の該当項目です。1つでも該当すれば<b>赤タッグ</b>に格上げします。"
+  },
+  {
+    vignette: "黄タッグの傷病者。舌が喉の奥に落ち込み、いびきのような音を立てながら呼吸している。",
+    correct: "気道",
+    explain: "舌根沈下による気道閉塞は生理学的評価の該当項目です。窒息につながる危険な状態のため<b>赤タッグ</b>に格上げします。"
+  },
+  {
+    vignette: "黄タッグの傷病者。呼吸数を測り直すと1分間に8回とかなり遅い。",
+    correct: "呼吸",
+    explain: "呼吸数が10回未満、または30回以上/分は生理学的評価の該当項目です。今回は8回/分と遅すぎるため<b>赤タッグ</b>に格上げします。"
+  },
+  {
+    vignette: "黄タッグの傷病者。脈を測ると1分間に130回とかなり速く、橈骨動脈の触れも弱い。",
+    correct: "循環",
+    explain: "脈拍が120以上/分、あるいは橈骨動脈が弱い・触れない場合は生理学的評価の該当項目です。<b>赤タッグ</b>に格上げします。"
+  },
+  {
+    vignette: "黄タッグの傷病者。体温を測ると34.5℃と低い。",
+    correct: "体温",
+    explain: "体温が35℃以下の低体温は生理学的評価の該当項目です。全身状態の悪化を示すサインとして<b>赤タッグ</b>に格上げします。"
+  },
+  {
+    vignette: "黄タッグの傷病者。呼びかけにはっきり反応でき、気道も開通している。呼吸数22回/分、脈拍88回/分で橈骨動脈も良好に触知でき、体温は36.5℃。下腿の骨折はあるが、それ以外に異常な所見はない。",
+    correct: NONE_KEY,
+    explain: "意識・気道・呼吸・循環・体温のいずれにも異常がないため、<b>黄タッグを維持</b>します。骨折があっても、生理学的な異常が見つからなければ黄のまま二次トリアージを進めます。"
+  },
+  {
+    vignette: "黄タッグの傷病者。意識は清明で気道も良好。呼吸数18回/分、脈拍76回/分で橈骨動脈も良好、体温は36.8℃。骨折はあるが、それ以外の異常所見はない。",
+    correct: NONE_KEY,
+    explain: "生理学的評価のいずれにも該当項目がないため<b>黄タッグを維持</b>します。異常がなければ、次は解剖学的評価に進みます。"
+  },
+  {
+    vignette: "黄タッグの傷病者。強くつねっても払いのけるような反応しか示さず、声かけには反応しない。",
+    correct: "意識",
+    explain: "痛み刺激にしか反応せず、呼びかけに反応しない状態はJCS2桁以上相当の意識障害です。生理学的評価の該当項目として<b>赤タッグ</b>に格上げします。"
+  },
+  {
+    vignette: "黄タッグの傷病者。仰向けで寝ていると喉の奥からゴロゴロという音がして、呼吸が苦しそうに見える。",
+    correct: "気道",
+    explain: "いびきのような音は舌根沈下による気道の狭窄・閉塞を示唆します。生理学的評価の該当項目として<b>赤タッグ</b>に格上げします。"
+  },
+  {
+    vignette: "黄タッグの傷病者。パルスオキシメーターでSpO2を測定すると88%と低い。",
+    correct: "呼吸",
+    explain: "SpO2が90%未満は生理学的評価の該当項目です。酸素化の悪化を示すサインとして<b>赤タッグ</b>に格上げします。"
+  },
+  {
+    vignette: "黄タッグの傷病者。血圧を測ると88/50mmHgとかなり低い。",
+    correct: "循環",
+    explain: "収縮期血圧が90未満は生理学的評価の該当項目です。循環不全のサインとして<b>赤タッグ</b>に格上げします。"
+  },
+  {
+    vignette: "黄タッグの傷病者。長時間雨に濡れていたため、体温を測ると34.8℃だった。",
+    correct: "体温",
+    explain: "体温が35℃以下の低体温は生理学的評価の該当項目です。<b>赤タッグ</b>に格上げします。"
+  },
+  {
+    vignette: "黄タッグの傷病者。意識清明で気道も良好。呼吸数20回/分、SpO2 98%、脈拍80回/分、血圧120/70mmHg、体温36.6℃。骨折はあるが、それ以外の異常所見はない。",
+    correct: NONE_KEY,
+    explain: "意識・気道・呼吸・循環・体温のすべてが正常範囲のため、<b>黄タッグを維持</b>します。"
+  }
+];
+
+/* --- PAT法：第2段階（解剖学的評価）身体所見 → 疑われる病態 --- */
+const ANAT_CONDITIONS = [
+  "（開放性）頭蓋骨骨折",
+  "頭蓋底骨折",
+  "顔面、気道熱傷",
+  "緊張性気胸、気管・気道損傷",
+  "心タンポナーデ、緊張性気胸",
+  "緊張性気胸、気管損傷",
+  "気胸、気管・気管支損傷",
+  "血気胸",
+  "フレイルチェスト",
+  "開放性気胸",
+  "腹腔内出血、腹部臓器損傷",
+  "骨盤骨折",
+  "両側大腿骨骨折",
+  "上位脊髄損傷",
+  "デグロービング損傷",
+  "圧挫症候群（クラッシュシンドローム）",
+  "重要臓器損傷、大血管損傷",
+  "専門医の治療を要する切断肢",
+  "専門医の治療を要する重症熱傷"
+];
+
+const ANAT_CASES = [
+  { vignette:"頭部を強く打ち、傷口から頭の骨が変形しているのが見える（開放創を伴う）。", correct:"（開放性）頭蓋骨骨折",
+    explain:"開放創を伴う頭蓋骨の変形は<b>（開放性）頭蓋骨骨折</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"頭部を強打した後、鼻や耳から透明でサラサラした液体が漏れ出ている。", correct:"頭蓋底骨折",
+    explain:"鼻や耳からの透明な液体の漏出（髄液漏）は<b>頭蓋底骨折</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"顔にやけどを負い、鼻毛が焦げ、口や鼻の中にすすが付着している。声もかすれている。", correct:"顔面、気道熱傷",
+    explain:"顔面熱傷・鼻毛焼灼・口鼻腔内のすす付着・嗄声は<b>顔面、気道熱傷</b>を疑う所見です。気道の腫脹で窒息する危険があり<b>赤タッグ</b>に格上げします。" },
+  { vignette:"胸を強打した傷病者。首から胸にかけて押すと雪を握ったような感触（握雪感）があり、のどぼとけの位置もいつもと違う場所に変形している。", correct:"緊張性気胸、気管・気道損傷",
+    explain:"頸部の握雪感（皮下気腫）に気管の変形が加わると<b>緊張性気胸、気管・気道損傷</b>を疑います。解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"ショック状態の傷病者。首の血管が普段よりもパンパンに膨らんで見える。", correct:"心タンポナーデ、緊張性気胸",
+    explain:"ショックを伴う首の血管の著しい怒張は<b>心タンポナーデ、緊張性気胸</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"胸部外傷後、のどぼとけの位置が左右どちらかに大きくずれている。", correct:"緊張性気胸、気管損傷",
+    explain:"気管の偏位は<b>緊張性気胸、気管損傷</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"胸を強打した傷病者。胸の皮膚を押すと雪を握ったようなプチプチという感触がある。気管の位置に変化はない。", correct:"気胸、気管・気管支損傷",
+    explain:"気管の変形を伴わない皮下の握雪感は<b>気胸、気管・気管支損傷</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"胸を強打した傷病者。聴診すると片側の呼吸音が明らかに弱く、左右差がある。", correct:"血気胸",
+    explain:"呼吸音の左右差（患側の減弱）は<b>血気胸</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"交通事故に巻き込まれた傷病者。胸郭の動きが左右非対称で、息を吸うと胸の一部だけ逆にへこむように動く（奇異呼吸）。", correct:"フレイルチェスト",
+    explain:"胸郭動揺・奇異呼吸は<b>フレイルチェスト</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"胸壁に穴が開いており、呼吸のたびにその傷口からヒュー、ヒューと空気が出入りする音が聞こえる。", correct:"開放性気胸",
+    explain:"胸部創からの気泡混じりの空気の出入りは<b>開放性気胸</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"腹部が張って硬く、押すと強い抵抗があり、腸の一部が傷口から出てしまっている。", correct:"腹腔内出血、腹部臓器損傷",
+    explain:"腹部膨隆・腹壁緊張・腸管脱出は<b>腹腔内出血、腹部臓器損傷</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"骨盤を押すと痛みと不安定な動揺があり、左右の脚の長さが違って見える。", correct:"骨盤骨折",
+    explain:"骨盤の圧痛・動揺・下肢長差は<b>骨盤骨折</b>を疑う所見です。大量出血を伴いやすく、解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"両方の太ももが変形し、出血と腫れ、強い圧痛があり、脚の長さも左右で違う。", correct:"両側大腿骨骨折",
+    explain:"大腿の変形・出血・腫脹・圧痛・下肢長差は<b>両側大腿骨骨折</b>を疑う所見です。大量出血のリスクが高く、解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"両手足に力が入らず麻痺しており、呼吸の仕方もお腹だけが不自然に膨らむような呼吸になっている。", correct:"上位脊髄損傷",
+    explain:"四肢麻痺と奇異（腹式）呼吸は<b>上位脊髄損傷</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"機械に腕を巻き込まれ、広範囲にわたって皮膚がべろりと剥がれ落ちている。", correct:"デグロービング損傷",
+    explain:"四肢の広範囲の軟部組織剥脱は<b>デグロービング損傷</b>を疑う所見です。大量出血や壊死のリスクが高く、解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"倒壊した建物の下に4時間以上挟まれていた傷病者で、救出後の尿がポートワインのような赤黒い色をしている。", correct:"圧挫症候群（クラッシュシンドローム）",
+    explain:"長時間の挟まれと赤黒い尿は<b>圧挫症候群（クラッシュシンドローム）</b>を疑う所見です。救出直後に急変することがあり、解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"刃物によって首・胸・お腹の付け根あたりを刺されており、傷が体の奥深くまで貫通している。", correct:"重要臓器損傷、大血管損傷",
+    explain:"頭頸部・体幹部・そけい部への穿通性外傷は<b>重要臓器損傷、大血管損傷</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"事故で腕の一部が完全に切断されてしまっている。", correct:"専門医の治療を要する切断肢",
+    explain:"四肢の切断は<b>専門医の治療を要する切断肢</b>にあたります。解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"外傷を伴い、体表の15%以上に及ぶ広範囲のやけどを負っている。ショック状態も見られる。", correct:"専門医の治療を要する重症熱傷",
+    explain:"外傷を伴う15%以上の熱傷、またはショックを伴う広範囲熱傷は<b>専門医の治療を要する重症熱傷</b>にあたります。解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"黄タッグの傷病者。頭部や胸部、腹部、四肢を頭から足まで観察したが、変形・出血・腫脹・呼吸音の左右差・皮膚の異常な感触など、危険な所見は見当たらない。", correct:NONE_KEY,
+    explain:"解剖学的評価のいずれにも該当する所見がないため、<b>黄タッグを維持</b>します。オーバートリアージを避け、黄のまま二次トリアージを終えます。" },
+  { vignette:"下腿の閉鎖骨折がある傷病者。頭から足まで観察しても、それ以外に変形や出血、皮膚の異常な感触などは見当たらない。", correct:NONE_KEY,
+    explain:"骨折以外に該当する解剖学的所見がないため<b>黄タッグを維持</b>します。PAT法は「1つでも当てはまれば赤」という基準なので、なければ黄のままです。" },
+  { vignette:"頭部を強打した後、両目の周りに内出血が広がっている（パンダの目のような外観）。耳からも透明な液体が漏れている。", correct:"頭蓋底骨折",
+    explain:"眼窩周囲の内出血（パンダの目）や耳からの透明な液体の漏出は<b>頭蓋底骨折</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"胸を刺された傷病者。片側の胸を軽く叩くと、通常と違って鈍い音がする。", correct:"血気胸",
+    explain:"打診で鈍い音がする（濁音）のは胸腔内に血液が溜まっているサインで、<b>血気胸</b>を疑います。解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"転落した傷病者。息を吐くときに胸の一部が逆に膨らむような、不自然な胸の動きがある。", correct:"フレイルチェスト",
+    explain:"呼吸のたびに胸の一部が逆方向に動く奇異呼吸は<b>フレイルチェスト</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"胸に木片が刺さったままになっており、その周囲の傷口から空気が漏れる音がする。", correct:"開放性気胸",
+    explain:"胸壁の傷口からの空気の出入りは<b>開放性気胸</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"腹部を強く打った傷病者。時間が経つにつれてお腹がどんどん張ってきて、顔色も悪くなってきている。", correct:"腹腔内出血、腹部臓器損傷",
+    explain:"腹部の膨隆が進行し顔色不良を伴う場合は<b>腹腔内出血、腹部臓器損傷</b>を疑います。解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"バイク事故の傷病者。骨盤の左右を軽く押すと激痛を訴え、下肢の長さにも左右差がある。", correct:"骨盤骨折",
+    explain:"骨盤の圧痛と下肢長差は<b>骨盤骨折</b>を疑う所見です。大量出血を伴いやすく、解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"重機に手を挟まれ、手の皮膚が手袋を脱ぐように剥がれてしまっている。", correct:"デグロービング損傷",
+    explain:"手袋を脱ぐように皮膚がめくれる損傷は<b>デグロービング損傷</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"土砂崩れで下半身が長時間埋まっていた傷病者。救出後、下肢の感覚がなく、尿の色も濃い赤褐色をしている。", correct:"圧挫症候群（クラッシュシンドローム）",
+    explain:"長時間の圧迫後の下肢の感覚障害と赤褐色尿は<b>圧挫症候群（クラッシュシンドローム）</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"鉄パイプが脇腹から体幹を貫通しており、まだ刺さったままになっている。", correct:"重要臓器損傷、大血管損傷",
+    explain:"体幹部への穿通性外傷は<b>重要臓器損傷、大血管損傷</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"顔と両腕に熱湯を浴び、受傷面積が体表の20%に達する広範囲熱傷を負っている。", correct:"専門医の治療を要する重症熱傷",
+    explain:"体表の20%に及ぶ広範囲熱傷は<b>専門医の治療を要する重症熱傷</b>にあたります。解剖学的評価の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"黄タッグの傷病者。転倒により肩を強打したが、頭部・頸部・胸部・腹部・四肢のいずれにも変形や異常な感触は見られない。", correct:NONE_KEY,
+    explain:"頭から足まで確認しても該当する解剖学的所見がないため<b>黄タッグを維持</b>します。" },
+  { vignette:"黄タッグの傷病者。手首の閉鎖骨折があるのみで、それ以外の部位に外傷所見はない。", correct:NONE_KEY,
+    explain:"骨折以外に該当する解剖学的所見がないため<b>黄タッグを維持</b>します。" }
+];
+
+/* --- PAT法：第3段階（受傷機転） --- */
+const MECH_ORDER = ["体幹部の挟圧","1肢以上の挟圧（4時間以上）","高所墜落","爆発","異常温度環境","有毒ガス発生","汚染（NBC）"];
+
+const MECH_CASES = [
+  { vignette:"倒壊した建物の梁の下敷きになり、体幹部を挟まれた状態で救出された。", correct:"体幹部の挟圧",
+    explain:"体幹部を強い外力で挟まれた場合、外見上は軽症に見えても内臓や血管に重大な損傷を負っていることがあります。受傷機転の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"倒壊物の下敷きになり、片脚を4時間以上にわたって挟まれた状態で救出された。", correct:"1肢以上の挟圧（4時間以上）",
+    explain:"四肢を長時間（4時間以上）挟まれると、圧挫症候群（クラッシュシンドローム）を発症するリスクが高まります。受傷機転の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"作業中に足場から5階相当の高さを転落した。", correct:"高所墜落",
+    explain:"高所からの墜落は、その場では症状がはっきりしなくても体幹部や内臓に重大な損傷を負っている可能性があります。受傷機転の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"近くで発生したガス爆発に巻き込まれ、その爆風を受けて倒れていた。", correct:"爆発",
+    explain:"爆発による爆風は、肺や鼓膜など内部の臓器に外見からは分からない損傷を与えることがあります。受傷機転の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"極寒の屋外に長時間取り残されていた。", correct:"異常温度環境",
+    explain:"低体温や熱中症などにつながる異常な温度環境に長時間さらされた場合は、受傷機転の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"化学工場の事故現場で、有毒ガスが充満する中に取り残されていた。", correct:"有毒ガス発生",
+    explain:"有毒ガスへの曝露は、時間が経ってから症状が現れることがあります。受傷機転の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"原子力災害の現場で、放射性物質による汚染の疑いがある区域に長時間いた。", correct:"汚染（NBC）",
+    explain:"核・生物・化学（NBC）物質による汚染の疑いがある場合は、受傷機転の該当項目として<b>赤タッグ</b>に格上げします。除染など特別な対応も必要になります。" },
+  { vignette:"黄タッグの傷病者。自宅の階段で足を滑らせて転倒した。挟まれや高所からの墜落、爆発、異常な環境への曝露などはない。", correct:NONE_KEY,
+    explain:"受傷機転にも該当する項目がないため、<b>黄タッグを維持</b>します。第1〜第3段階のいずれにも異常がなければ、そのまま黄タッグとして扱います。" },
+  { vignette:"黄タッグの傷病者。通勤中に自転車で転倒し、擦り傷を負った。挟まれや高所からの墜落、爆発などの特別な受傷機転はない。", correct:NONE_KEY,
+    explain:"受傷機転に該当する項目がないため<b>黄タッグを維持</b>します。転倒そのものは、挟圧や墜落などのリスクの高い機転にはあたりません。" },
+  { vignette:"花火工場で爆発事故が発生し、その場に居合わせて吹き飛ばされた。", correct:"爆発",
+    explain:"爆発による爆風は、外見上目立った外傷がなくても肺や鼓膜に損傷を負っていることがあります。受傷機転の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"屋根の上から地面まで転落した。", correct:"高所墜落",
+    explain:"高所からの墜落は、その場で症状がはっきりしなくても体幹部や内臓に重大な損傷を負っている可能性があります。受傷機転の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"自動車の運転席で、変形した車体に胸部を挟まれた状態で救出された。", correct:"体幹部の挟圧",
+    explain:"体幹部を強い外力で挟まれた場合、外見上は軽症に見えても内臓や血管に重大な損傷を負っていることがあります。受傷機転の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"一酸化炭素が充満した部屋に長時間閉じ込められていた。", correct:"有毒ガス発生",
+    explain:"有毒ガスへの曝露は、時間が経ってから症状が現れることがあります。受傷機転の該当項目として<b>赤タッグ</b>に格上げします。" },
+  { vignette:"黄タッグの傷病者。自宅で椅子から立ち上がる際にバランスを崩して転倒した。挟まれや高所からの墜落、爆発、異常な環境への曝露などはない。", correct:NONE_KEY,
+    explain:"受傷機転にも該当する項目がないため、<b>黄タッグを維持</b>します。" }
+];
+
+
+const TAGS = {
+  green:{label:"緑",num:"区分Ⅲ",tier:"軽処置群"},
+  yellow:{label:"黄",num:"区分Ⅱ",tier:"非緊急治療群"},
+  red:{label:"赤",num:"区分Ⅰ",tier:"最優先治療群"},
+  black:{label:"黒",num:"区分0",tier:"死亡・救命困難群"}
+};
+
+const PAT_SAMPLE_SIZE = 16;
+
+function patTag(c){ return c.correct === NONE_KEY ? "yellow" : "red"; }
+
+function buildAnatOptions(correct){
+  let opts;
+  if(correct === NONE_KEY){
+    opts = shuffle(ANAT_CONDITIONS).slice(0,3);
+    opts.push(NONE_KEY);
+  } else {
+    const pool = ANAT_CONDITIONS.filter(x=>x!==correct);
+    opts = shuffle(pool).slice(0,3);
+    opts.push(correct);
+  }
+  return shuffle(opts);
+}
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+/* ============================= STATE ============================= */
+
+const state = {
+  screen: "select",   // select | game | result
+  mode: null,          // start | pat | mix | start-endless | pat-endless
+  endless: false,
+  endlessSource: null, // "start" | "pat" — which pool to keep refilling from
+  cases: [],
+  index: 0,
+  score: 0,
+  answered: false,
+  selected: null,
+  mistakes: [],
+  timerId: null,
+  timeLeft: 20,
+  showRef: false,
+  showQuit: false,
+  currentOptions: null   // shuffled answer options for the current anat case
+};
+
+function quitSession(){
+  clearInterval(state.timerId);
+  state.showQuit = false;
+  state.screen = "result";
+  render();
+}
+
+function buildPatPool(){
+  return [
+    ...PHYS_CASES.map(c=>({...c, kind:"pat", sub:"phys"})),
+    ...ANAT_CASES.map(c=>({...c, kind:"pat", sub:"anat"})),
+    ...MECH_CASES.map(c=>({...c, kind:"pat", sub:"mech"}))
+  ];
+}
+
+function freshShuffledBatch(source){
+  return source === "start"
+    ? shuffle(START_CASES).map(c=>({...c, kind:"start"}))
+    : shuffle(buildPatPool());
+}
+
+function startMode(mode){
+  state.mode = mode;
+  state.endless = (mode === "start-endless" || mode === "pat-endless");
+  state.endlessSource = mode === "start-endless" ? "start" : mode === "pat-endless" ? "pat" : null;
+
+  if(mode === "start" || mode === "start-endless"){
+    state.cases = shuffle(START_CASES).map(c=>({...c, kind:"start"}));
+  } else if(mode === "pat" || mode === "pat-endless"){
+    const pool = shuffle(buildPatPool());
+    state.cases = mode === "pat-endless" ? pool : pool.slice(0, PAT_SAMPLE_SIZE);
+  } else {
+    const mixed = [...START_CASES.map(c=>({...c,kind:"start"})), ...buildPatPool()];
+    state.cases = shuffle(mixed).slice(0,10);
+  }
+  state.index = 0;
+  state.score = 0;
+  state.mistakes = [];
+  state.screen = "game";
+  loadCaseOptions();
+  render();
+  if(currentCase().kind === "start") startTimer();
+}
+
+function currentCase(){ return state.cases[state.index]; }
+
+function loadCaseOptions(){
+  const c = currentCase();
+  state.currentOptions = (c.kind === "pat" && c.sub === "anat") ? buildAnatOptions(c.correct) : null;
+}
+
+function startTimer(){
+  clearInterval(state.timerId);
+  state.timeLeft = 20;
+  state.timerId = setInterval(()=>{
+    state.timeLeft -= 1;
+    if(state.timeLeft <= 0){
+      clearInterval(state.timerId);
+      if(!state.answered) selectAnswer(null);
+    }
+    updateTimerBar();
+  }, 1000);
+}
+
+function updateTimerBar(){
+  const el = document.getElementById("timer-fill");
+  if(el) el.style.width = Math.max(0,(state.timeLeft/20*100)) + "%";
+}
+
+function selectAnswer(value){
+  if(state.answered) return;
+  clearInterval(state.timerId);
+  state.answered = true;
+  state.selected = value;
+  const c = currentCase();
+  let correct, correctLabel, chosenLabel;
+  if(c.kind === "start"){
+    correct = value === c.tag;
+    correctLabel = TAGS[c.tag].label + "タッグ";
+    chosenLabel = value ? TAGS[value].label + "タッグ" : "時間切れ";
+  } else if(c.sub === "phys"){
+    correct = value === c.correct;
+    correctLabel = c.correct === NONE_KEY ? NONE_LABEL : PHYS_LABELS[c.correct];
+    chosenLabel = value === NONE_KEY ? NONE_LABEL : PHYS_LABELS[value];
+  } else {
+    correct = value === c.correct;
+    correctLabel = c.correct === NONE_KEY ? NONE_LABEL : c.correct;
+    chosenLabel = value === NONE_KEY ? NONE_LABEL : value;
+  }
+  if(correct) state.score += 1;
+  else state.mistakes.push({vignette:c.vignette, correctLabel, chosenLabel, explain:c.explain});
+  render();
+}
+
+function nextCase(){
+  state.index += 1;
+  state.answered = false;
+  state.selected = null;
+  if(state.index >= state.cases.length){
+    if(state.endless){
+      state.cases = state.cases.concat(freshShuffledBatch(state.endlessSource));
+    } else {
+      state.screen = "result";
+      render();
+      return;
+    }
+  }
+  loadCaseOptions();
+  render();
+  if(currentCase().kind === "start") startTimer();
+}
+
+function backToSelect(){
+  clearInterval(state.timerId);
+  state.screen = "select";
+  render();
+}
+
+/* ============================= RENDER ============================= */
+
+function el(html){
+  const t = document.createElement("template");
+  t.innerHTML = html.trim();
+  return t.content;
+}
+
+function render(){
+  const app = document.getElementById("app");
+  app.innerHTML = "";
+  app.appendChild(el(renderHeader()));
+  if(state.screen === "select") app.appendChild(el(renderSelect()));
+  if(state.screen === "game") app.appendChild(el(renderGame()));
+  if(state.screen === "result") app.appendChild(el(renderResult()));
+  if(state.showRef) app.appendChild(el(renderRefModal()));
+  if(state.showQuit) app.appendChild(el(renderQuitModal()));
+  bindEvents();
+  if(state.screen === "game") updateTimerBar();
+}
+
+function renderHeader(){
+  return `
+  <header class="app-header">
+    <div>
+      <p class="brand">TRIAGE DRILL FIELD</p>
+      <h1>トリアージ演習場</h1>
+    </div>
+    <button class="ref-btn" id="btn-ref">フローチャート確認</button>
+  </header>`;
+}
+
+function renderSelect(){
+  return `
+  <p class="intro-note">START法（一次トリアージ）とPAT法（二次トリアージ）の判断を、実際の症例を通して練習します。まずは「フローチャート確認」で流れをおさらいしてから挑戦しても構いません。</p>
+  <div class="mode-grid">
+    <button class="mode-card" data-mode="start">
+      <p class="m-eyebrow">一次トリアージ・全${START_CASES.length}症例</p>
+      <h3>START法モード</h3>
+      <p>歩行・呼吸・循環・意識の順に評価し、緑〜黒の4色を判定します。1問20秒の制限時間つきで、現場のスピード感を体験します。</p>
+    </button>
+    <button class="mode-card" data-mode="start-endless">
+      <p class="m-eyebrow">エンドレス・全${START_CASES.length}症例からランダム出題</p>
+      <h3>START法エンドレスモード</h3>
+      <p>症例が尽きたら自動でシャッフルし直し、止めるまで何問でも続けられます。「終了」ボタンでいつでも結果を確認できます。</p>
+    </button>
+    <button class="mode-card pat" data-mode="pat">
+      <p class="m-eyebrow">二次トリアージ・全${PAT_SAMPLE_SIZE}問（ランダム出題）</p>
+      <h3>PAT法モード</h3>
+      <p>黄タッグの傷病者について、生理学的評価はどの項目に異常があるかを、解剖学的評価は身体所見からどの病態が疑われるかを、受傷機転はどの受傷状況に該当するかを選びます。時間制限はありません。</p>
+    </button>
+    <button class="mode-card pat" data-mode="pat-endless">
+      <p class="m-eyebrow">エンドレス・全${PHYS_CASES.length + ANAT_CASES.length + MECH_CASES.length}症例からランダム出題</p>
+      <h3>PAT法エンドレスモード</h3>
+      <p>生理学的・解剖学的・受傷機転の全症例プールから、止めるまで何問でも出題し続けます。</p>
+    </button>
+    <button class="mode-card mix" data-mode="mix">
+      <p class="m-eyebrow">ランダム10問</p>
+      <h3>ミックスチャレンジ</h3>
+      <p>START法とPAT法の症例をシャッフルして出題する腕試しモードです。</p>
+    </button>
+  </div>`;
+}
+
+function renderPhysOptions(){
+  let html = `<div class="crit-list">`;
+  PHYS_ORDER.forEach(key=>{
+    html += `<button class="crit-btn" data-crit="${key}">${PHYS_LABELS[key]}</button>`;
+  });
+  html += `</div><button class="crit-btn none-btn" data-crit="${NONE_KEY}">${NONE_LABEL}</button>`;
+  return html;
+}
+
+function renderMechOptions(){
+  let html = `<div class="crit-list">`;
+  MECH_ORDER.forEach(key=>{
+    html += `<button class="crit-btn" data-crit="${key}">${key}</button>`;
+  });
+  html += `</div><button class="crit-btn none-btn" data-crit="${NONE_KEY}">${NONE_LABEL}</button>`;
+  return html;
+}
+
+function renderAnatOptions(){
+  let html = `<div class="crit-list">`;
+  state.currentOptions.forEach((val,idx)=>{
+    const label = val === NONE_KEY ? NONE_LABEL : val;
+    const cls = val === NONE_KEY ? "crit-btn none-btn" : "crit-btn";
+    html += `<button class="${cls}" data-idx="${idx}">${label}</button>`;
+  });
+  html += `</div>`;
+  return html;
+}
+
+function renderGame(){
+  const c = currentCase();
+  const isStart = c.kind === "start";
+  const isPhys = c.kind === "pat" && c.sub === "phys";
+  const isAnat = c.kind === "pat" && c.sub === "anat";
+  const isMech = c.kind === "pat" && c.sub === "mech";
+  const total = state.cases.length;
+
+  const displayTag = isStart ? c.tag : patTag(c);
+
+  let tabsHtml = "";
+  if(isStart){
+    const order = ["green","yellow","red","black"];
+    tabsHtml = `<div class="tab-strip">` + order.map(t=>{
+      let cls = "tab " + t;
+      if(state.answered){
+        if(t === c.tag) cls += " kept";
+        else cls += " torn";
+      }
+      return `<div class="${cls}">${TAGS[t].label} ${TAGS[t].num}</div>`;
+    }).join("") + `</div>`;
+  } else {
+    tabsHtml = `<div class="tab-strip">
+      <div class="tab yellow ${state.answered && displayTag!=='yellow' ? 'torn':''} ${state.answered && displayTag==='yellow' ? 'kept':''}">黄 区分Ⅱ</div>
+      <div class="tab red ${state.answered && displayTag!=='red' ? 'torn':''} ${state.answered && displayTag==='red' ? 'kept':''}">赤 区分Ⅰ</div>
+    </div>`;
+  }
+
+  let answerHtml = "";
+  if(isStart){
+    const order = ["green","yellow","red","black"];
+    answerHtml = `<div class="answer-grid">` + order.map(t=>
+      `<button class="ans-btn c-${t}" data-tag="${t}">${TAGS[t].label}タッグ<span class="en">${TAGS[t].num}</span></button>`
+    ).join("") + `</div>`;
+  } else if(isPhys){
+    answerHtml = renderPhysOptions();
+  } else if(isMech){
+    answerHtml = renderMechOptions();
+  } else {
+    answerHtml = renderAnatOptions();
+  }
+
+  let feedbackHtml = "";
+  if(state.answered){
+    const correct = isStart ? (state.selected === c.tag) : (state.selected === c.correct);
+    const stampColor = `var(--tag-${displayTag})`;
+    const stampText = isStart
+      ? `${TAGS[c.tag].label}タッグ ${TAGS[c.tag].num}`
+      : (displayTag === "red" ? "赤タッグに格上げ 区分Ⅰ" : "黄タッグを維持 区分Ⅱ");
+    const correctLabel = isStart ? "" : (isPhys
+      ? (c.correct === NONE_KEY ? NONE_LABEL : PHYS_LABELS[c.correct])
+      : (c.correct === NONE_KEY ? NONE_LABEL : c.correct));
+    const chosenLabel = isStart ? "" : (isPhys
+      ? (state.selected === NONE_KEY ? NONE_LABEL : PHYS_LABELS[state.selected])
+      : (state.selected === NONE_KEY ? NONE_LABEL : state.selected));
+    const pathTrailHtml = (isStart && c.path) ? `
+      <p class="path-title">たどった経路（START変法フローチャート）</p>
+      <div class="path-trail">
+        ${c.path.map((step,i)=> i===c.path.length-1
+            ? `<span class="path-step path-alert tag-${c.tag}">${step}</span>`
+            : `<span class="path-step">${step}</span>`
+          ).join('<span class="path-arrow">↓</span>')}
+        <span class="path-arrow">↓</span>
+        <span class="path-step path-final tag-${c.tag}">${TAGS[c.tag].label}タッグ（${TAGS[c.tag].num}）</span>
+      </div>` : "";
+    const correctLabelTitle = isPhys ? "正しい異常項目：" : isMech ? "正しい受傷機転：" : "正しい病態：";
+    feedbackHtml = `
+    <div class="feedback">
+      <span class="verdict ${correct?'ok':'ng'}">${correct?"正解":"不正解"}${(isStart && state.selected===null)?"（時間切れ）":""}</span>
+      <div>
+        <span class="stamp" style="--stamp-color:${stampColor}">${stampText}</span>
+      </div>
+      ${!isStart ? `<p class="explain"><b>${correctLabelTitle}</b>${correctLabel}</p>` : ""}
+      ${(!isStart && !correct) ? `<p class="explain"><b>あなたの選択：</b>${chosenLabel}</p>` : ""}
+      <p class="explain">${c.explain}</p>
+      ${pathTrailHtml}
+      <button class="next-btn" id="btn-next">${(!state.endless && state.index+1>=total) ? "結果を見る" : "次の問題へ"}</button>
+    </div>`;
+  }
+
+  const caseLabel = isStart ? "一次トリアージ・START法"
+    : isPhys ? "二次トリアージ・PAT法（第1段階：生理学的評価）"
+    : isMech ? "二次トリアージ・PAT法（第3段階：受傷機転）"
+    : "二次トリアージ・PAT法（第2段階：解剖学的評価）";
+
+  const topbarProgress = state.endless
+    ? `<span class="endless-badge">ENDLESS</span><span>${state.index+1}問目</span><div class="progress-track" style="visibility:hidden;"></div>`
+    : `<span>${state.index+1} / ${total}</span><div class="progress-track"><div class="progress-fill" style="width:${(state.index)/total*100}%"></div></div>`;
+
+  return `
+  <div class="game-topbar">
+    ${topbarProgress}
+    <span class="score-pill">正解 <b>${state.score}</b></span>
+    <button class="quit-btn" id="btn-quit">${state.endless ? "終了" : "中止"}</button>
+  </div>
+  ${isStart ? `<div class="timer-wrap"><div class="timer-fill" id="timer-fill"></div></div>` : ""}
+  <div class="card">
+    ${tabsHtml}
+    <div class="card-body">
+      <p class="case-label">${caseLabel}</p>
+      <p class="vignette">${c.vignette}</p>
+      ${!state.answered ? answerHtml : ""}
+      ${feedbackHtml}
+    </div>
+  </div>`;
+}
+
+function renderResult(){
+  const total = state.score + state.mistakes.length;
+  const pct = total === 0 ? 0 : Math.round(state.score/total*100);
+  let tier, msg;
+  if(total === 0){ tier="記録なし"; msg="まだ1問も回答されていません。"; }
+  else if(pct === 100){ tier="エキスパート判定"; msg="全問正解です。実際の災害現場でも自信を持って一次・二次トリアージにあたれるレベルです。"; }
+  else if(pct >= 80){ tier="上級レベル"; msg="ほぼ正確に判定できています。間違えた症例だけ復習しておきましょう。"; }
+  else if(pct >= 50){ tier="中級レベル"; msg="基本的な流れはつかめています。フローチャートを見直してもう一度挑戦してみましょう。"; }
+  else { tier="訓練生レベル"; msg="まずは「フローチャート確認」で判定基準を見直してから、再挑戦してみましょう。"; }
+
+  const mistakesHtml = state.mistakes.length === 0
+    ? `<p class="intro-note">間違えた症例はありませんでした。</p>`
+    : state.mistakes.map(m=>`
+      <div class="review-item">
+        <div class="ri-top">
+          <span>正解：${m.correctLabel}</span>
+          <span>あなたの回答：${m.chosenLabel}</span>
+        </div>
+        <p style="margin:0 0 6px;">${m.vignette}</p>
+        <p style="margin:0;color:var(--muted);">${m.explain}</p>
+      </div>`).join("");
+
+  return `
+  <div class="result-hero">
+    <div class="big-score">${state.score}<span>/${total}</span></div>
+    <p class="result-tier">${tier}</p>
+    <p class="result-msg">${msg}</p>
+  </div>
+  ${mistakesHtml}
+  <div class="result-actions">
+    <button class="btn-secondary" id="btn-select">モード選択に戻る</button>
+    <button class="next-btn" id="btn-retry">同じモードでもう一度</button>
+  </div>`;
+}
+
+function renderQuitModal(){
+  const title = state.endless ? "ここで終了しますか？" : "この問題セットを中止しますか？";
+  const sub = `ここまで${state.score + state.mistakes.length}問中<b>${state.score}</b>問正解です。終了すると結果画面に進みます。`;
+  const confirmLabel = state.endless ? "終了して結果を見る" : "中止して結果を見る";
+  return `
+  <div class="modal-overlay" id="quit-overlay">
+    <div class="modal-sheet">
+      <h2>${title}</h2>
+      <p class="sub">${sub}</p>
+      <div class="result-actions" style="margin-top:4px;">
+        <button class="btn-secondary" id="btn-quit-cancel">続ける</button>
+        <button class="next-btn" id="btn-quit-confirm" style="background:var(--tag-red);color:#fff;">${confirmLabel}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderRefModal(){
+  return `
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal-sheet">
+      <button class="modal-close" id="modal-close">閉じる ×</button>
+      <h2>START法（一次トリアージ）</h2>
+      <p class="sub">歩行 → 呼吸 → 循環 → 意識　の順に、約30秒で判定します。</p>
+      <div class="flow-step"><div class="fs-num">1</div><div class="fs-body"><b>歩行可能？</b><span class="arrow">はい → <span class="tag-chip green">緑</span>／いいえ → 次へ</span></div></div>
+      <div class="flow-step"><div class="fs-num">2</div><div class="fs-body"><b>自発呼吸は？</b><span class="arrow">なし→気道開放にて呼吸なし → <span class="tag-chip black">黒</span>／気道開放にて呼吸あり → <span class="tag-chip red">赤</span>／もともとあり → 次へ</span></div></div>
+      <div class="flow-step"><div class="fs-num">3</div><div class="fs-body"><b>呼吸回数は？</b><span class="arrow">9回/分以下 or 30回/分以上 → <span class="tag-chip red">赤</span>／10〜29回/分 → 次へ</span></div></div>
+      <div class="flow-step"><div class="fs-num">4</div><div class="fs-body"><b>橈骨動脈は触知できるか？</b><span class="arrow">触知せず → <span class="tag-chip red">赤</span>／触知可能 → 次へ</span></div></div>
+      <div class="flow-step"><div class="fs-num">5</div><div class="fs-body"><b>従命反応は？</b><span class="arrow">応じない → <span class="tag-chip red">赤</span>／応じる → <span class="tag-chip yellow">黄</span></span></div></div>
+
+      <h2 style="margin-top:24px;">PAT法（二次トリアージ）</h2>
+      <p class="sub">START法で黄タッグとなった傷病者を、第1段階（生理学的評価）→ 第2段階（解剖学的評価）→ 第3段階（受傷機転）の順にじっくり再評価します。いずれかに該当すれば赤タッグへ格上げします。</p>
+      <div class="pat-rule">
+        <b>第1段階：生理学的評価</b>
+        <ul>
+          <li>意識：呼びかけへの反応がない、または不穏（JCS2桁以上）</li>
+          <li>気道：舌根沈下、気道閉塞</li>
+          <li>呼吸：浅く速い・深く遅い・不規則、左右差、30回/分以上または9回/分以下、SpO2 90%未満</li>
+          <li>循環：橈骨動脈が触れない・弱い・速い、蒼白・冷感・湿潤、活動性出血、脈拍120以上/50未満、血圧90未満/200以上</li>
+          <li>体温：35℃以下</li>
+        </ul>
+      </div>
+      <div class="pat-rule">
+        <b>第2段階：解剖学的評価（身体所見 → 疑われる病態）</b>
+        <ul>
+          <li>開放創を伴う頭蓋骨の変形 → （開放性）頭蓋骨骨折</li>
+          <li>髄液鼻漏・髄液耳漏 → 頭蓋底骨折</li>
+          <li>顔面熱傷・鼻毛焼灼・口鼻腔内すす付着・嗄声 → 顔面、気道熱傷</li>
+          <li>頸部皮下気腫＋気管変形 → 緊張性気胸、気管・気道損傷</li>
+          <li>ショックを伴う外頸静脈の著しい怒張 → 心タンポナーデ、緊張性気胸</li>
+          <li>気管偏位 → 緊張性気胸、気管損傷</li>
+          <li>皮下気腫 → 気胸、気管・気管支損傷</li>
+          <li>呼吸音左右差（患側減弱） → 血気胸</li>
+          <li>胸郭動揺・奇異呼吸 → フレイルチェスト</li>
+          <li>胸部創より気泡混じりの出血 → 開放性気胸</li>
+          <li>腹部膨隆・腹壁緊張・腸管脱出 → 腹腔内出血、腹部臓器損傷</li>
+          <li>骨盤圧痛・動揺・下肢長差 → 骨盤骨折</li>
+          <li>大腿の変形・出血・腫脹・圧痛・下肢長差 → 両側大腿骨骨折</li>
+          <li>四肢麻痺・奇異（腹式）呼吸 → 上位脊髄損傷</li>
+          <li>四肢軟部組織剥脱 → デグロービング損傷</li>
+          <li>重量物挟まれ・下敷き、ポートワイン尿 → 圧挫症候群（クラッシュシンドローム）</li>
+          <li>頭頸部・体幹部・そけい部への穿通性外傷 → 重要臓器損傷、大血管損傷</li>
+          <li>四肢の切断 → 専門医の治療を要する切断肢</li>
+          <li>外傷を伴う15%以上の熱傷、ショックを伴う広範囲熱傷 → 専門医の治療を要する重症熱傷</li>
+        </ul>
+      </div>
+      <div class="pat-rule">
+        <b>第3段階：受傷機転</b>
+        <ul>
+          <li>体幹部の挟圧</li>
+          <li>1肢以上の挟圧（4時間以上）</li>
+          <li>高所墜落</li>
+          <li>爆発</li>
+          <li>異常温度環境</li>
+          <li>有毒ガス発生</li>
+          <li>汚染（NBC）</li>
+        </ul>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ============================= EVENTS ============================= */
+
+function bindEvents(){
+  const refBtn = document.getElementById("btn-ref");
+  if(refBtn) refBtn.onclick = ()=>{ state.showRef = true; render(); };
+
+  const modalClose = document.getElementById("modal-close");
+  if(modalClose) modalClose.onclick = ()=>{ state.showRef = false; render(); };
+  const overlay = document.getElementById("modal-overlay");
+  if(overlay) overlay.onclick = (e)=>{ if(e.target === overlay){ state.showRef=false; render(); } };
+
+  const quitBtn = document.getElementById("btn-quit");
+  if(quitBtn) quitBtn.onclick = ()=>{ state.showQuit = true; render(); };
+
+  const quitCancel = document.getElementById("btn-quit-cancel");
+  if(quitCancel) quitCancel.onclick = ()=>{ state.showQuit = false; render(); };
+
+  const quitConfirm = document.getElementById("btn-quit-confirm");
+  if(quitConfirm) quitConfirm.onclick = quitSession;
+
+  const quitOverlay = document.getElementById("quit-overlay");
+  if(quitOverlay) quitOverlay.onclick = (e)=>{ if(e.target === quitOverlay){ state.showQuit = false; render(); } };
+
+  document.querySelectorAll(".mode-card").forEach(btn=>{
+    btn.onclick = ()=> startMode(btn.dataset.mode);
+  });
+
+  document.querySelectorAll(".ans-btn").forEach(btn=>{
+    btn.onclick = ()=> selectAnswer(btn.dataset.tag);
+  });
+
+  document.querySelectorAll(".crit-btn").forEach(btn=>{
+    btn.onclick = ()=>{
+      if(btn.dataset.idx !== undefined){
+        selectAnswer(state.currentOptions[parseInt(btn.dataset.idx,10)]);
+      } else {
+        selectAnswer(btn.dataset.crit);
+      }
+    };
+  });
+
+  const nextBtn = document.getElementById("btn-next");
+  if(nextBtn) nextBtn.onclick = nextCase;
+
+  const selectBtn = document.getElementById("btn-select");
+  if(selectBtn) selectBtn.onclick = backToSelect;
+
+  const retryBtn = document.getElementById("btn-retry");
+  if(retryBtn) retryBtn.onclick = ()=> startMode(state.mode);
+}
+
+render();
+</script>
+</body>
+</html>
