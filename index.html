@@ -82,6 +82,13 @@
     white-space:nowrap;
   }
   .ref-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .header-actions{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    flex-shrink:0;
+  }
+  .feedback-btn:hover{border-color:var(--tag-yellow);color:var(--tag-yellow);}
 
   /* ---------- Mode select ---------- */
   .mode-grid{display:flex;flex-direction:column;gap:12px;}
@@ -791,6 +798,7 @@ const PHYS_LABELS = {
 };
 const NONE_KEY = "NONE";
 const NONE_LABEL = "該当項目なし → 黄タグを維持";
+const FEEDBACK_URL = "https://forms.gle/yGsR1YqzJwniXDvk9";
 
 const PHYS_CASES = [
   {
@@ -995,6 +1003,7 @@ const TAGS = {
 };
 
 const PAT_SAMPLE_SIZE = 16;
+const START_SAMPLE_SIZE = 16;
 
 function patTag(c){ return c.correct === NONE_KEY ? "yellow" : "red"; }
 
@@ -1066,7 +1075,8 @@ function startMode(mode){
   state.endlessSource = mode === "start-endless" ? "start" : mode === "pat-endless" ? "pat" : null;
 
   if(mode === "start" || mode === "start-endless"){
-    state.cases = shuffle(START_CASES).map(c=>({...c, kind:"start"}));
+    const pool = shuffle(START_CASES).map(c=>({...c, kind:"start"}));
+    state.cases = mode === "start-endless" ? pool : pool.slice(0, START_SAMPLE_SIZE);
   } else if(mode === "pat" || mode === "pat-endless"){
     const pool = shuffle(buildPatPool());
     state.cases = mode === "pat-endless" ? pool : pool.slice(0, PAT_SAMPLE_SIZE);
@@ -1185,7 +1195,10 @@ function renderHeader(){
       <p class="brand">TRIAGE DRILL FIELD</p>
       <h1>トリアージ演習場</h1>
     </div>
-    <button class="ref-btn" id="btn-ref">フローチャート確認</button>
+    <div class="header-actions">
+      <button class="ref-btn" id="btn-ref">フローチャート確認</button>
+      <button class="ref-btn feedback-btn" id="btn-feedback">フィードバック</button>
+    </div>
   </header>`;
 }
 
@@ -1194,7 +1207,7 @@ function renderSelect(){
   <p class="intro-note">START法（一次トリアージ）とPAT法（二次トリアージ）の判断を、実際の症例を通して練習します。まずは「フローチャート確認」で流れをおさらいしてから挑戦しても構いません。</p>
   <div class="mode-grid">
     <button class="mode-card" data-mode="start">
-      <p class="m-eyebrow">一次トリアージ・全${START_CASES.length}症例</p>
+      <p class="m-eyebrow">一次トリアージ・全${START_SAMPLE_SIZE}問（ランダム出題）</p>
       <h3>START法モード</h3>
       <p>歩行・呼吸・循環・意識の順に評価し、緑〜黒の4色を判定します。1問20秒の制限時間つきで、現場のスピード感を体験します。</p>
     </button>
@@ -1479,6 +1492,9 @@ function renderRefModal(){
 function bindEvents(){
   const refBtn = document.getElementById("btn-ref");
   if(refBtn) refBtn.onclick = ()=>{ state.showRef = true; render(); };
+
+  const feedbackBtn = document.getElementById("btn-feedback");
+  if(feedbackBtn) feedbackBtn.onclick = ()=>{ window.open(FEEDBACK_URL, "_blank", "noopener"); };
 
   const modalClose = document.getElementById("modal-close");
   if(modalClose) modalClose.onclick = ()=>{ state.showRef = false; render(); };
