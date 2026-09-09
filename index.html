@@ -216,6 +216,62 @@
     margin-bottom:10px;
   }
   .vignette{font-size:15px;margin:0 0 16px;}
+  .recap-box{
+    background:var(--panel-alt);
+    border-left:3px solid var(--muted);
+    border-radius:3px;
+    padding:10px 14px;
+    margin:0 0 14px;
+  }
+  .recap-title{
+    font-family:var(--font-tag);
+    font-size:10.5px;
+    letter-spacing:.06em;
+    color:var(--muted);
+    margin:0 0 5px;
+  }
+  .recap-text{font-size:13.5px;color:var(--muted);margin:0;line-height:1.6;}
+
+  .patient-board{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .patient-card{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:4px;
+    text-align:left;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-left:4px solid var(--muted);
+    border-radius:3px;
+    padding:12px;
+    cursor:pointer;
+    transition:background .15s, border-color .15s;
+  }
+  .patient-card:hover{background:var(--panel-alt);}
+  .patient-card.tag-green{border-left-color:var(--tag-green);}
+  .patient-card.tag-yellow{border-left-color:var(--tag-yellow);}
+  .patient-card.tag-red{border-left-color:var(--tag-red);}
+  .patient-card.tag-black{border-left-color:var(--tag-black);}
+  .patient-card.tag-none{border-left-color:var(--muted);}
+  .patient-card.selected, .patient-card.done{
+    background:var(--panel-alt);
+    border-color:var(--border);
+    opacity:.6;
+    cursor:default;
+  }
+  .patient-card:disabled{cursor:default;}
+  .pc-num{font-family:var(--font-tag);font-size:11px;color:var(--muted);}
+  .pc-tagchip{font-size:14px;font-weight:700;}
+  .pc-check{font-family:var(--font-tag);font-size:10.5px;color:var(--accent);}
+  .patient-card.done .pc-check{color:var(--muted);font-weight:700;}
+  @media (max-width:420px){
+    .patient-board{grid-template-columns:1fr;}
+  }
   .vitals{
     background:var(--panel-alt);
     border-radius:3px;
@@ -994,6 +1050,209 @@ const MECH_CASES = [
     explain:"受傷機転にも該当する項目がないため、<b>黄タグを維持</b>します。" }
 ];
 
+/* --- シナリオチャレンジ：同一患者を一次→二次と続けて評価する --- */
+const TRAIN_SCENARIO_CASES = [
+  {
+    scenario: "列車衝突事故",
+    stage1Vignette: "20代女性。脱線した列車の中から、自分の足で歩いてホームまで避難してきた。目立った外傷はなく、呼びかけにもはっきり応答する。",
+    tag: "green",
+    path: ["歩行可能？ → はい"],
+    explain: "自力歩行できる傷病者は<b>緑（軽処置群）</b>です。緑タグの患者は二次トリアージの対象にはなりません。"
+  },
+  {
+    scenario: "列車衝突事故",
+    stage1Vignette: "40代女性。脱線した車両から自力で歩いて避難してきた。目立った外傷はなく、受け答えもしっかりしている。",
+    tag: "green",
+    path: ["歩行可能？ → はい"],
+    explain: "自力歩行できる傷病者は<b>緑（軽処置群）</b>です。緑タグの患者は二次トリアージの対象にはなりません。"
+  },
+  {
+    scenario: "列車衝突事故",
+    stage1Vignette: "30代男性。座席から自力で立ち上がり、擦り傷程度で歩いて避難してきた。",
+    tag: "green",
+    path: ["歩行可能？ → はい"],
+    explain: "自力歩行できる傷病者は<b>緑（軽処置群）</b>です。緑タグの患者は二次トリアージの対象にはなりません。"
+  },
+  {
+    scenario: "列車衝突事故",
+    stage1Vignette: "50代女性。転倒して膝を打ったが、自分の足で歩いてホームまで移動した。",
+    tag: "green",
+    path: ["歩行可能？ → はい"],
+    explain: "自力歩行できる傷病者は<b>緑（軽処置群）</b>です。緑タグの患者は二次トリアージの対象にはなりません。"
+  },
+  {
+    scenario: "列車衝突事故",
+    stage1Vignette: "20代男性。窓ガラスの破片で腕に軽い切り傷を負ったが、自力で歩いて避難した。",
+    tag: "green",
+    path: ["歩行可能？ → はい"],
+    explain: "自力歩行できる傷病者は<b>緑（軽処置群）</b>です。緑タグの患者は二次トリアージの対象にはなりません。"
+  },
+  {
+    scenario: "列車衝突事故",
+    stage1Vignette: "80代男性。脱線した車両の下敷きになっていた。歩行不可。呼びかけに反応がなく、頭部後屈顎先挙上で気道を確保しても呼吸が確認できない。",
+    tag: "black",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → なし", "気道開放にて呼吸は？ → なし"],
+    explain: "気道を確保しても呼吸が再開しない場合は<b>黒（死亡・救命困難群）</b>に分類します。黒タグの患者も二次トリアージの対象にはなりません。"
+  },
+  {
+    scenario: "列車衝突事故",
+    stage1Vignette: "40代男性。列車の座席に体を強く打ちつけられた。歩行不可。自発呼吸はあるが、呼吸数を数えると1分間に35回とかなり速く、肩を使って呼吸している。",
+    tag: "red",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 35回/分（9回/分以下 or 30回/分以上）"],
+    explain: "呼吸数が30回/分以上の場合は<b>赤（最優先治療群）</b>に分類します。すでに赤タグの患者も、治療の優先順位づけのため引き続き二次トリアージで全身を確認します。",
+    secondary: {
+      sub: "anat",
+      additionalVignette: "上着を脱がせて確認すると、胸郭の動きが左右非対称で、息を吸うと胸の一部だけ逆にへこむように動いていることが分かった。",
+      correct: "フレイルチェスト",
+      explain: "呼吸数が速く努力呼吸に見えた背景には、胸郭の一部が逆に動く<b>フレイルチェスト</b>がありました。多発肋骨骨折による呼吸不全のリスクが高く、赤タグとしての治療優先度がさらに裏付けられます。"
+    }
+  },
+  {
+    scenario: "列車衝突事故",
+    stage1Vignette: "50代男性。座席の下敷きになり脚から出血している。歩行不可。呼吸数は22回/分で正常範囲内。橈骨動脈を触知しようとしたが、まったく触れない。",
+    tag: "red",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 22回/分（10-29回/分）", "橈骨動脈は触知できるか？ → 触知せず"],
+    explain: "橈骨動脈が触知できない場合は循環不全とみなし<b>赤（最優先治療群）</b>に分類します。すでに赤タグの患者も、治療の優先順位づけのため引き続き二次トリアージで全身を確認します。",
+    secondary: {
+      sub: "mech",
+      additionalVignette: "詳しく話を聞くと、座席の下に脚を4時間以上挟まれていたことが分かった。",
+      correct: "1肢以上の挟圧（4時間以上）",
+      explain: "橈骨動脈が触れないほどの循環不全の背景には、長時間の下肢挟圧がありました。圧挫症候群（クラッシュシンドローム）のリスクが高く、救出直後の急変にも注意が必要です。"
+    }
+  },
+  {
+    scenario: "列車衝突事故",
+    stage1Vignette: "60代男性。脱線した車両の中に一時取り残されていた。歩行不可。呼吸数20回/分、橈骨動脈は良好に触知でき、指示にもしっかり応じられる。",
+    tag: "yellow",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 20回/分（10-29回/分）", "橈骨動脈は触知できるか？ → 触知可能", "従命反応は？ → 応じる"],
+    explain: "呼吸・循環・意識のいずれにも異常がないため、一次トリアージでは<b>黄（非緊急治療群）</b>と判定します。続けて二次トリアージで全身を詳しく評価します。",
+    secondary: {
+      sub: "phys",
+      additionalVignette: "指先にパルスオキシメーターを装着すると、SpO2が87%までしか上がらないことが分かった。",
+      correct: "呼吸",
+      explain: "一次トリアージの時点では気づけなかった酸素化の悪化が、全身観察によって新たに見つかりました。SpO2 90%未満は生理学的評価の該当項目であり、<b>赤タグ</b>に格上げします。"
+    }
+  },
+  {
+    scenario: "列車衝突事故",
+    stage1Vignette: "70代女性。転倒により腰を強打し、歩行できない。呼吸数18回/分、橈骨動脈は良好、意識清明で指示にも応じられる。",
+    tag: "yellow",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 18回/分（10-29回/分）", "橈骨動脈は触知できるか？ → 触知可能", "従命反応は？ → 応じる"],
+    explain: "呼吸・循環・意識のいずれにも異常がないため、一次トリアージでは<b>黄（非緊急治療群）</b>と判定します。続けて二次トリアージで全身を確認します。",
+    secondary: {
+      sub: "phys",
+      additionalVignette: "意識・気道・呼吸・循環・体温のすべてを確認したが、いずれも異常はなかった。",
+      correct: NONE_KEY,
+      explain: "生理学的評価のいずれにも異常がないため、<b>黄タグを維持</b>します。一次トリアージの判定に問題がなかったことが二次トリアージで確認できました。"
+    }
+  }
+];
+
+const BUILDING_SCENARIO_CASES = [
+  {
+    scenario: "地震によるビル倒壊",
+    stage1Vignette: "30代男性。倒壊した棚を避けようとして転倒し、腕に擦り傷を負ったが、自分の足で歩いて集合場所まで来た。",
+    tag: "green",
+    path: ["歩行可能？ → はい"],
+    explain: "自力歩行できる傷病者は<b>緑（軽処置群）</b>です。緑タグの患者は二次トリアージの対象にはなりません。"
+  },
+  {
+    scenario: "地震によるビル倒壊",
+    stage1Vignette: "40代女性。崩れた棚を避けて自力で歩いて避難してきた。目立った外傷はなく、はっきり会話できる。",
+    tag: "green",
+    path: ["歩行可能？ → はい"],
+    explain: "自力歩行できる傷病者は<b>緑（軽処置群）</b>です。緑タグの患者は二次トリアージの対象にはなりません。"
+  },
+  {
+    scenario: "地震によるビル倒壊",
+    stage1Vignette: "20代女性。転倒して手のひらを擦りむいたが、自分の足で歩いて避難した。",
+    tag: "green",
+    path: ["歩行可能？ → はい"],
+    explain: "自力歩行できる傷病者は<b>緑（軽処置群）</b>です。緑タグの患者は二次トリアージの対象にはなりません。"
+  },
+  {
+    scenario: "地震によるビル倒壊",
+    stage1Vignette: "60代男性。倒壊物を避ける際に転倒したが、自力で歩いて集合場所まで来た。",
+    tag: "green",
+    path: ["歩行可能？ → はい"],
+    explain: "自力歩行できる傷病者は<b>緑（軽処置群）</b>です。緑タグの患者は二次トリアージの対象にはなりません。"
+  },
+  {
+    scenario: "地震によるビル倒壊",
+    stage1Vignette: "30代女性。落下物で頭に軽い切り傷を負ったが、意識清明で自力歩行できる。",
+    tag: "green",
+    path: ["歩行可能？ → はい"],
+    explain: "自力歩行できる傷病者は<b>緑（軽処置群）</b>です。緑タグの患者は二次トリアージの対象にはなりません。"
+  },
+  {
+    scenario: "地震によるビル倒壊",
+    stage1Vignette: "70代男性。倒壊した建物の下敷きになっていたところを救出された。歩行不可。呼びかけに反応がなく、頭部後屈顎先挙上で気道を確保しても呼吸が確認できない。",
+    tag: "black",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → なし", "気道開放にて呼吸は？ → なし"],
+    explain: "気道を確保しても呼吸が再開しない場合は<b>黒（死亡・救命困難群）</b>に分類します。黒タグの患者も二次トリアージの対象にはなりません。"
+  },
+  {
+    scenario: "地震によるビル倒壊",
+    stage1Vignette: "60代女性。倒壊物の下敷きになっていた。歩行不可。呼吸数は20回/分で正常範囲内。橈骨動脈を触知しようとしたが、まったく触れない。",
+    tag: "red",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 20回/分（10-29回/分）", "橈骨動脈は触知できるか？ → 触知せず"],
+    explain: "橈骨動脈が触知できない場合は循環不全とみなし<b>赤（最優先治療群）</b>に分類します。すでに赤タグの患者も、治療の優先順位づけのため引き続き二次トリアージで全身を確認します。",
+    secondary: {
+      sub: "anat",
+      additionalVignette: "上着を脱がせて確認すると、腹部が板のように硬く張り、押し返すような強い抵抗があることが分かった。",
+      correct: "腹腔内出血、腹部臓器損傷",
+      explain: "橈骨動脈が触れないほどの循環不全の背景には、腹部の板状硬という所見がありました。<b>腹腔内出血、腹部臓器損傷</b>による出血性ショックが疑われ、赤タグとしての治療優先度がさらに裏付けられます。"
+    }
+  },
+  {
+    scenario: "地震によるビル倒壊",
+    stage1Vignette: "50代男性。倒壊物の下から救出された。歩行不可。自発呼吸はあるが、呼吸数を測ると1分間に33回とかなり速い。",
+    tag: "red",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 33回/分（9回/分以下 or 30回/分以上）"],
+    explain: "呼吸数が30回/分以上の場合は<b>赤（最優先治療群）</b>に分類します。すでに赤タグの患者も、治療の優先順位づけのため引き続き二次トリアージで全身を確認します。",
+    secondary: {
+      sub: "mech",
+      additionalVignette: "詳しく話を聞くと、瓦礫の下で片脚を4時間以上挟まれていたことが分かった。",
+      correct: "1肢以上の挟圧（4時間以上）",
+      explain: "呼吸数の異常の背景に加えて、長時間の下肢挟圧という受傷機転も判明しました。圧挫症候群（クラッシュシンドローム）のリスクが高く、赤タグとしての治療優先度がさらに裏付けられます。"
+    }
+  },
+  {
+    scenario: "地震によるビル倒壊",
+    stage1Vignette: "50代女性。倒壊した建物の隙間から救出された。歩行不可。呼吸数18回/分、橈骨動脈は良好に触知でき、「手を握ってください」の指示にもしっかり応じられる。",
+    tag: "yellow",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 18回/分（10-29回/分）", "橈骨動脈は触知できるか？ → 触知可能", "従命反応は？ → 応じる"],
+    explain: "呼吸・循環・意識のいずれにも異常がないため、一次トリアージでは<b>黄（非緊急治療群）</b>と判定します。ただし黄タグの患者は、続けて二次トリアージで全身をより詳しく評価する必要があります。",
+    secondary: {
+      sub: "anat",
+      additionalVignette: "上着を脱がせて全身を観察すると、胸部を強打した跡があり、首から胸にかけての皮膚を押すと雪を握ったような感触（握雪感）があることが分かった。気管の位置に変化はない。",
+      correct: "気胸、気管・気管支損傷",
+      explain: "一次トリアージでは分からなかった握雪感（皮下気腫）が、全身観察によって新たに見つかりました。<b>気胸、気管・気管支損傷</b>を疑う所見であり、解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。一次トリアージだけでは重症度を見逃してしまうことがある、という二次トリアージの重要性を示す一例です。"
+    }
+  },
+  {
+    scenario: "地震によるビル倒壊",
+    stage1Vignette: "70代男性。倒壊物に足を挟まれ負傷した。歩行不可。呼吸数16回/分、橈骨動脈は良好、指示に応じられる。",
+    tag: "yellow",
+    path: ["歩行可能？ → いいえ", "自発呼吸は？ → あり", "呼吸回数は？ → 16回/分（10-29回/分）", "橈骨動脈は触知できるか？ → 触知可能", "従命反応は？ → 応じる"],
+    explain: "呼吸・循環・意識のいずれにも異常がないため、一次トリアージでは<b>黄（非緊急治療群）</b>と判定します。続けて二次トリアージで全身を確認します。",
+    secondary: {
+      sub: "phys",
+      additionalVignette: "意識・気道・呼吸・循環・体温のすべてを確認したが、いずれも異常はなかった。",
+      correct: NONE_KEY,
+      explain: "生理学的評価のいずれにも異常がないため、<b>黄タグを維持</b>します。一次トリアージの判定に問題がなかったことが二次トリアージで確認できました。"
+    }
+  }
+];
+
+const SCENARIO_POOLS = {
+  "scenario-train": TRAIN_SCENARIO_CASES,
+  "scenario-building": BUILDING_SCENARIO_CASES
+};
+
+function isScenarioMode(mode){
+  return mode === "scenario-train" || mode === "scenario-building";
+}
 
 const TAGS = {
   green:{label:"緑",num:"区分Ⅲ",tier:"軽処置群"},
@@ -1032,7 +1291,7 @@ function shuffle(arr){
 
 const state = {
   screen: "select",   // select | game | result
-  mode: null,          // start | pat | mix | start-endless | pat-endless
+  mode: null,          // start | pat | mix | start-endless | pat-endless | scenario
   endless: false,
   endlessSource: null, // "start" | "pat" — which pool to keep refilling from
   cases: [],
@@ -1045,7 +1304,14 @@ const state = {
   timeLeft: 20,
   showRef: false,
   showQuit: false,
-  currentOptions: null   // shuffled answer options for the current anat case
+  currentOptions: null,   // shuffled answer options for the current anat case
+  // --- scenario challenge state ---
+  scenarioPhase: null,    // triage1 | board | triage2 | triage2none | review
+  scenarioPatients: [],
+  currentPatientIdx: 0,
+  activePatientIdx: null, // patient currently being examined in triage2 / triage2none
+  reviewIdx: 0,
+  scenarioLock: false
 };
 
 function quitSession(){
@@ -1069,10 +1335,34 @@ function freshShuffledBatch(source){
     : shuffle(buildPatPool());
 }
 
+function buildScenarioPatients(pool){
+  return shuffle(pool).map((p, i)=>({
+    ...p,
+    patientNum: i + 1,
+    playerTag1: null,
+    selectedForStage2: false,
+    playerAnswer2: null
+  }));
+}
+
 function startMode(mode){
   state.mode = mode;
   state.endless = (mode === "start-endless" || mode === "pat-endless");
   state.endlessSource = mode === "start-endless" ? "start" : mode === "pat-endless" ? "pat" : null;
+  state.score = 0;
+  state.mistakes = [];
+  state.screen = "game";
+
+  if(isScenarioMode(mode)){
+    state.scenarioPatients = buildScenarioPatients(SCENARIO_POOLS[mode]);
+    state.scenarioPhase = "triage1";
+    state.currentPatientIdx = 0;
+    state.activePatientIdx = null;
+    state.reviewIdx = 0;
+    render();
+    startTimer();
+    return;
+  }
 
   if(mode === "start" || mode === "start-endless"){
     const pool = shuffle(START_CASES).map(c=>({...c, kind:"start"}));
@@ -1085,9 +1375,6 @@ function startMode(mode){
     state.cases = shuffle(mixed).slice(0,10);
   }
   state.index = 0;
-  state.score = 0;
-  state.mistakes = [];
-  state.screen = "game";
   loadCaseOptions();
   render();
   if(currentCase().kind === "start") startTimer();
@@ -1107,7 +1394,11 @@ function startTimer(){
     state.timeLeft -= 1;
     if(state.timeLeft <= 0){
       clearInterval(state.timerId);
-      if(!state.answered) selectAnswer(null);
+      if(isScenarioMode(state.mode) && state.scenarioPhase === "triage1"){
+        answerTriage1(null);
+      } else if(!state.answered){
+        selectAnswer(null);
+      }
     }
     updateTimerBar();
   }, 1000);
@@ -1159,6 +1450,102 @@ function nextCase(){
   loadCaseOptions();
   render();
   if(currentCase().kind === "start") startTimer();
+}
+
+/* ============================= SCENARIO CHALLENGE ============================= */
+
+function answerTriage1(tag){
+  if(state.scenarioLock) return;
+  state.scenarioLock = true;
+  clearInterval(state.timerId);
+  const p = state.scenarioPatients[state.currentPatientIdx];
+  p.playerTag1 = tag;
+  state.currentPatientIdx += 1;
+  if(state.currentPatientIdx >= state.scenarioPatients.length){
+    state.scenarioPhase = "board";
+  }
+  render();
+  state.scenarioLock = false;
+  if(state.scenarioPhase === "triage1") startTimer();
+}
+
+function tapPatient(idx){
+  const p = state.scenarioPatients[idx];
+  if(p.selectedForStage2) return; // already handled
+  state.activePatientIdx = idx;
+  if(p.secondary){
+    state.scenarioPhase = "triage2";
+    state.currentOptions = (p.secondary.sub === "anat") ? buildAnatOptions(p.secondary.correct) : null;
+  } else {
+    state.scenarioPhase = "triage2none";
+  }
+  render();
+}
+
+function answerTriage2(value){
+  if(state.scenarioLock) return;
+  state.scenarioLock = true;
+  const p = state.scenarioPatients[state.activePatientIdx];
+  p.playerAnswer2 = value;
+  p.selectedForStage2 = true;
+  state.scenarioPhase = "board";
+  render();
+  state.scenarioLock = false;
+}
+
+function acknowledgeNoSecondary(){
+  const p = state.scenarioPatients[state.activePatientIdx];
+  p.selectedForStage2 = true;
+  p.playerAnswer2 = null;
+  state.scenarioPhase = "board";
+  render();
+}
+
+function scenario2Label(sub, val){
+  if(val === NONE_KEY) return NONE_LABEL;
+  return sub === "phys" ? PHYS_LABELS[val] : val;
+}
+
+function enterReview(){
+  state.score = 0;
+  state.mistakes = [];
+  state.scenarioPatients.forEach(p=>{
+    if(p.playerTag1 === p.tag){
+      state.score += 1;
+    } else {
+      state.mistakes.push({
+        vignette: `【患者${p.patientNum}・一次トリアージ】${p.stage1Vignette}`,
+        correctLabel: TAGS[p.tag].label + "タグ",
+        chosenLabel: p.playerTag1 ? TAGS[p.playerTag1].label + "タグ" : "時間切れ・未回答",
+        explain: p.explain
+      });
+    }
+    if(p.secondary){
+      if(p.selectedForStage2 && p.playerAnswer2 !== null){
+        const correct2 = p.playerAnswer2 === p.secondary.correct;
+        if(correct2){
+          state.score += 1;
+        } else {
+          state.mistakes.push({
+            vignette: `【患者${p.patientNum}・二次トリアージ】${p.secondary.additionalVignette}`,
+            correctLabel: scenario2Label(p.secondary.sub, p.secondary.correct),
+            chosenLabel: scenario2Label(p.secondary.sub, p.playerAnswer2),
+            explain: p.secondary.explain
+          });
+        }
+      } else {
+        state.mistakes.push({
+          vignette: `【患者${p.patientNum}・二次トリアージ】${p.secondary.additionalVignette}`,
+          correctLabel: scenario2Label(p.secondary.sub, p.secondary.correct),
+          chosenLabel: "二次トリアージを実施しなかった",
+          explain: "この患者は一次トリアージで黄タグと判定されるべき患者で、本来は二次トリアージが必要でした。" + p.secondary.explain
+        });
+      }
+    }
+  });
+  state.scenarioPhase = "review";
+  state.reviewIdx = 0;
+  render();
 }
 
 function backToSelect(){
@@ -1226,10 +1613,15 @@ function renderSelect(){
       <h3>PAT法エンドレスモード</h3>
       <p>生理学的・解剖学的・受傷機転の全症例プールから、止めるまで何問でも出題し続けます。</p>
     </button>
-    <button class="mode-card mix" data-mode="mix">
-      <p class="m-eyebrow">ランダム10問</p>
-      <h3>ミックスチャレンジ</h3>
-      <p>START法とPAT法の症例をシャッフルして出題する腕試しモードです。</p>
+    <button class="mode-card mix" data-mode="scenario-train">
+      <p class="m-eyebrow">シナリオ・患者${TRAIN_SCENARIO_CASES.length}人</p>
+      <h3>シナリオチャレンジ：列車衝突事故</h3>
+      <p>列車衝突事故を想定し、患者${TRAIN_SCENARIO_CASES.length}人の一次トリアージをまず全員分行います。その後、トリアージボードから二次トリアージが必要な患者を自分で選んで評価し、最後にまとめて答え合わせをします。二次トリアージが必要な患者を見逃すと不正解になります。</p>
+    </button>
+    <button class="mode-card mix" data-mode="scenario-building">
+      <p class="m-eyebrow">シナリオ・患者${BUILDING_SCENARIO_CASES.length}人</p>
+      <h3>シナリオチャレンジ：地震によるビル倒壊</h3>
+      <p>地震によるビル倒壊を想定し、患者${BUILDING_SCENARIO_CASES.length}人の一次トリアージをまず全員分行います。その後、トリアージボードから二次トリアージが必要な患者を自分で選んで評価し、最後にまとめて答え合わせをします。二次トリアージが必要な患者を見逃すと不正解になります。</p>
     </button>
   </div>`;
 }
@@ -1263,7 +1655,182 @@ function renderAnatOptions(){
   return html;
 }
 
+/* ---------- Scenario Challenge rendering ---------- */
+
+function renderScenarioGame(){
+  if(state.scenarioPhase === "triage1") return renderScenarioTriage1();
+  if(state.scenarioPhase === "board") return renderScenarioBoard();
+  if(state.scenarioPhase === "triage2") return renderScenarioTriage2();
+  if(state.scenarioPhase === "triage2none") return renderScenarioTriage2None();
+  if(state.scenarioPhase === "review") return renderScenarioReview();
+  return "";
+}
+
+function renderScenarioTriage1(){
+  const p = state.scenarioPatients[state.currentPatientIdx];
+  const total = state.scenarioPatients.length;
+  const order = ["green","yellow","red","black"];
+  return `
+  <div class="game-topbar">
+    <span>患者 ${p.patientNum} / ${total}・一次トリアージ</span>
+    <div class="progress-track"><div class="progress-fill" style="width:${(state.currentPatientIdx)/total*100}%"></div></div>
+    <button class="quit-btn" id="btn-quit">中止</button>
+  </div>
+  <div class="timer-wrap"><div class="timer-fill" id="timer-fill"></div></div>
+  <div class="card">
+    <div class="card-body">
+      <p class="case-label">${p.scenario}｜一次トリアージ・START法</p>
+      <p class="vignette">${p.stage1Vignette}</p>
+      <div class="answer-grid">
+        ${order.map(t=>`<button class="ans-btn c-${t}" data-tag="${t}">${TAGS[t].label}タグ<span class="en">${TAGS[t].num}</span></button>`).join("")}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderScenarioBoard(){
+  const patients = state.scenarioPatients;
+  const doneCount = patients.filter(p=>p.selectedForStage2).length;
+  return `
+  <div class="game-topbar">
+    <span>トリアージボード</span>
+    <div class="progress-track" style="visibility:hidden;"></div>
+    <button class="quit-btn" id="btn-quit">中止</button>
+  </div>
+  <p class="intro-note">全患者の一次トリアージが完了しました。二次トリアージが必要と思う患者をタップすると、その場で1人ずつ評価できます（${doneCount} / ${patients.length} 人が確認済み）。十分だと思ったら「採点する」を押してください。</p>
+  <div class="patient-board">
+    ${patients.map((p,idx)=>{
+      const tagCls = p.playerTag1 ? "tag-" + p.playerTag1 : "tag-none";
+      const tagText = p.playerTag1 ? `${TAGS[p.playerTag1].label}タグ ${TAGS[p.playerTag1].num}` : "時間切れ・未回答";
+      const done = p.selectedForStage2;
+      return `<button class="patient-card ${tagCls} ${done ? 'done':''}" data-board-idx="${idx}" ${done ? 'disabled':''}>
+        <span class="pc-num">患者${p.patientNum}</span>
+        <span class="pc-tagchip">${tagText}</span>
+        <span class="pc-check">${done ? '✓ 二次トリアージ確認済み' : 'タップして二次トリアージへ'}</span>
+      </button>`;
+    }).join("")}
+  </div>
+  <button class="next-btn" id="btn-scenario-grade">採点する</button>`;
+}
+
+function renderScenarioTriage2(){
+  const p = state.scenarioPatients[state.activePatientIdx];
+  const sub = p.secondary.sub;
+  let answerHtml;
+  if(sub === "phys") answerHtml = renderPhysOptions();
+  else if(sub === "mech") answerHtml = renderMechOptions();
+  else answerHtml = renderAnatOptions();
+  const stageTitle = sub === "phys" ? "二次トリアージ・第1段階：生理学的評価"
+    : sub === "mech" ? "二次トリアージ・第3段階：受傷機転"
+    : "二次トリアージ・第2段階：解剖学的評価";
+  return `
+  <div class="game-topbar">
+    <span>患者${p.patientNum}の二次トリアージ</span>
+    <button class="quit-btn" id="btn-quit">中止</button>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <p class="case-label">患者${p.patientNum}（${p.scenario}）｜${stageTitle}</p>
+      <div class="recap-box">
+        <p class="recap-title">一次トリアージ時の所見</p>
+        <p class="recap-text">${p.stage1Vignette}</p>
+      </div>
+      <p class="vignette">${p.secondary.additionalVignette}</p>
+      ${answerHtml}
+    </div>
+  </div>`;
+}
+
+function renderScenarioTriage2None(){
+  const p = state.scenarioPatients[state.activePatientIdx];
+  return `
+  <div class="game-topbar">
+    <span>患者${p.patientNum}の二次トリアージ</span>
+    <button class="quit-btn" id="btn-quit">中止</button>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <p class="case-label">患者${p.patientNum}（${p.scenario}）｜二次トリアージ</p>
+      <div class="recap-box">
+        <p class="recap-title">一次トリアージ時の所見</p>
+        <p class="recap-text">${p.stage1Vignette}</p>
+      </div>
+      <p class="vignette">全身を頭から足まで観察しましたが、特に記録すべき新しい所見はありませんでした。</p>
+      <button class="next-btn" id="btn-triage2-ack">ボードに戻る</button>
+    </div>
+  </div>`;
+}
+
+function renderScenarioPatientReviewCard(p){
+  const correct1 = p.playerTag1 === p.tag;
+  const pathTrailHtml = buildPathTrailHtml(p.tag, p.path);
+
+  let secondaryHtml = "";
+  if(p.secondary){
+    if(p.selectedForStage2 && p.playerAnswer2 !== null){
+      const correct2 = p.playerAnswer2 === p.secondary.correct;
+      secondaryHtml = `
+      <div class="feedback" style="border-top:1px dashed var(--border);padding-top:16px;margin-top:16px;">
+        <p class="path-title">二次トリアージ</p>
+        <div class="recap-box"><p class="recap-text">${p.secondary.additionalVignette}</p></div>
+        <span class="verdict ${correct2?'ok':'ng'}">${correct2?"正解":"不正解"}</span>
+        <p class="explain"><b>正しい判定：</b>${scenario2Label(p.secondary.sub, p.secondary.correct)}</p>
+        ${!correct2 ? `<p class="explain"><b>あなたの選択：</b>${scenario2Label(p.secondary.sub, p.playerAnswer2)}</p>` : ""}
+        <p class="explain">${p.secondary.explain}</p>
+      </div>`;
+    } else {
+      secondaryHtml = `
+      <div class="feedback" style="border-top:1px dashed var(--border);padding-top:16px;margin-top:16px;">
+        <p class="path-title">二次トリアージ</p>
+        <span class="verdict ng">未実施・不正解</span>
+        <p class="explain">この患者は本来、二次トリアージが必要でした。<b>正しい判定：</b>${scenario2Label(p.secondary.sub, p.secondary.correct)}</p>
+        <p class="explain">${p.secondary.explain}</p>
+      </div>`;
+    }
+  }
+
+  return `
+  <div class="card" style="margin-bottom:14px;">
+    <div class="card-body">
+      <p class="case-label">患者${p.patientNum}（${p.scenario}）｜一次トリアージ</p>
+      <p class="vignette">${p.stage1Vignette}</p>
+      <span class="verdict ${correct1?'ok':'ng'}">${correct1?"正解":"不正解"}</span>
+      <div><span class="stamp" style="--stamp-color:var(--tag-${p.tag})">${TAGS[p.tag].label}タグ ${TAGS[p.tag].num}</span></div>
+      ${!correct1 ? `<p class="explain"><b>あなたの選択：</b>${p.playerTag1 ? TAGS[p.playerTag1].label+'タグ' : '時間切れ・未回答'}</p>` : ""}
+      <p class="explain">${p.explain}</p>
+      ${pathTrailHtml}
+      ${secondaryHtml}
+    </div>
+  </div>`;
+}
+
+function renderScenarioReview(){
+  const patients = state.scenarioPatients;
+  return `
+  <div class="game-topbar">
+    <span>答え合わせ（全${patients.length}人）</span>
+    <span class="score-pill">正解 <b>${state.score}</b></span>
+  </div>
+  ${patients.map(p=>renderScenarioPatientReviewCard(p)).join("")}
+  <button class="next-btn" id="btn-review-next">結果を見る</button>`;
+}
+
+function buildPathTrailHtml(tag, path){
+  if(!path) return "";
+  return `
+      <p class="path-title">たどった経路（START変法フローチャート）</p>
+      <div class="path-trail">
+        ${path.map((step,i)=> i===path.length-1
+            ? `<span class="path-step path-alert tag-${tag}">${step}</span>`
+            : `<span class="path-step">${step}</span>`
+          ).join('<span class="path-arrow">↓</span>')}
+        <span class="path-arrow">↓</span>
+        <span class="path-step path-final tag-${tag}">${TAGS[tag].label}タグ（${TAGS[tag].num}）</span>
+      </div>`;
+}
+
 function renderGame(){
+  if(isScenarioMode(state.mode)) return renderScenarioGame();
   const c = currentCase();
   const isStart = c.kind === "start";
   const isPhys = c.kind === "pat" && c.sub === "phys";
@@ -1318,16 +1885,7 @@ function renderGame(){
     const chosenLabel = isStart ? "" : (isPhys
       ? (state.selected === NONE_KEY ? NONE_LABEL : PHYS_LABELS[state.selected])
       : (state.selected === NONE_KEY ? NONE_LABEL : state.selected));
-    const pathTrailHtml = (isStart && c.path) ? `
-      <p class="path-title">たどった経路（START変法フローチャート）</p>
-      <div class="path-trail">
-        ${c.path.map((step,i)=> i===c.path.length-1
-            ? `<span class="path-step path-alert tag-${c.tag}">${step}</span>`
-            : `<span class="path-step">${step}</span>`
-          ).join('<span class="path-arrow">↓</span>')}
-        <span class="path-arrow">↓</span>
-        <span class="path-step path-final tag-${c.tag}">${TAGS[c.tag].label}タグ（${TAGS[c.tag].num}）</span>
-      </div>` : "";
+    const pathTrailHtml = (isStart && c.path) ? buildPathTrailHtml(c.tag, c.path) : "";
     const correctLabelTitle = isPhys ? "正しい異常項目：" : isMech ? "正しい受傷機転：" : "正しい病態：";
     feedbackHtml = `
     <div class="feedback">
@@ -1518,18 +2076,41 @@ function bindEvents(){
   });
 
   document.querySelectorAll(".ans-btn").forEach(btn=>{
-    btn.onclick = ()=> selectAnswer(btn.dataset.tag);
+    btn.onclick = ()=>{
+      if(isScenarioMode(state.mode) && state.scenarioPhase === "triage1"){
+        answerTriage1(btn.dataset.tag);
+      } else {
+        selectAnswer(btn.dataset.tag);
+      }
+    };
   });
 
   document.querySelectorAll(".crit-btn").forEach(btn=>{
     btn.onclick = ()=>{
-      if(btn.dataset.idx !== undefined){
-        selectAnswer(state.currentOptions[parseInt(btn.dataset.idx,10)]);
+      const value = (btn.dataset.idx !== undefined) ? state.currentOptions[parseInt(btn.dataset.idx,10)] : btn.dataset.crit;
+      if(isScenarioMode(state.mode) && state.scenarioPhase === "triage2"){
+        answerTriage2(value);
       } else {
-        selectAnswer(btn.dataset.crit);
+        selectAnswer(value);
       }
     };
   });
+
+  document.querySelectorAll(".patient-card").forEach(btn=>{
+    btn.onclick = ()=> tapPatient(parseInt(btn.dataset.boardIdx,10));
+  });
+
+  const triage2Ack = document.getElementById("btn-triage2-ack");
+  if(triage2Ack) triage2Ack.onclick = acknowledgeNoSecondary;
+
+  const gradeBtn = document.getElementById("btn-scenario-grade");
+  if(gradeBtn) gradeBtn.onclick = enterReview;
+
+  const reviewNext = document.getElementById("btn-review-next");
+  if(reviewNext) reviewNext.onclick = ()=>{
+    state.screen = "result";
+    render();
+  };
 
   const nextBtn = document.getElementById("btn-next");
   if(nextBtn) nextBtn.onclick = nextCase;
