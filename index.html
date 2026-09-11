@@ -870,75 +870,6 @@ const NONE_KEY = "NONE";
 const NONE_LABEL = "該当なし（変更なし）";
 const FEEDBACK_URL = "https://forms.gle/yGsR1YqzJwniXDvk9";
 
-const PHYS_CASES = [
-  {
-    vignette: "黄タグの傷病者。呼びかけても要領を得ない返答しかなく、興奮して落ち着きなく動き回っている。舌の落ち込みなどはなく気道は開通している。呼吸数18回/分、SpO2 97%。脈拍82回/分、血圧122/76mmHgで橈骨動脈も良好に触知できる。体温36.6℃。",
-    correct: "意識",
-    explain: "呼びかけへの反応がない、または不穏な状態はJCS2桁以上相当の意識障害を示し、生理学的評価の該当項目です。1つでも該当すれば<b>赤タグ</b>に格上げします。"
-  },
-  {
-    vignette: "黄タグの傷病者。舌が喉の奥に落ち込み、いびきのような音を立てながら呼吸している。呼びかけには開眼し、指示にも反応できる。呼吸数20回/分、SpO2 95%。脈拍88回/分、血圧118/74mmHgで橈骨動脈も良好に触知できる。体温36.5℃。",
-    correct: "気道",
-    explain: "舌根沈下による気道閉塞は生理学的評価の該当項目です。窒息につながる危険な状態のため<b>赤タグ</b>に格上げします。"
-  },
-  {
-    vignette: "黄タグの傷病者。意識清明で呼びかけにしっかり応じられる。気道は開通している。呼吸数を測り直すと1分間に8回だった。SpO2は94%。脈拍80回/分、血圧120/76mmHgで橈骨動脈も良好に触知できる。体温36.7℃。",
-    correct: "呼吸",
-    explain: "呼吸数が10回未満、または30回以上/分は生理学的評価の該当項目です。今回は8回/分と遅すぎるため<b>赤タグ</b>に格上げします。"
-  },
-  {
-    vignette: "黄タグの傷病者。意識清明で気道も開通している。呼吸数18回/分、SpO2 96%。脈を測ると1分間に130回で、橈骨動脈の触れも弱い。血圧は118/74mmHg。体温36.5℃。",
-    correct: "循環",
-    explain: "脈拍が120以上/分、あるいは橈骨動脈が弱い・触れない場合は生理学的評価の該当項目です。<b>赤タグ</b>に格上げします。"
-  },
-  {
-    vignette: "黄タグの傷病者。意識清明で気道も開通している。呼吸数18回/分、SpO2 97%。脈拍82回/分、血圧120/78mmHgで橈骨動脈も良好に触知できる。体温を測ると34.5℃だった。",
-    correct: "体温",
-    explain: "体温が35℃以下の低体温は生理学的評価の該当項目です。全身状態の悪化を示すサインとして<b>赤タグ</b>に格上げします。"
-  },
-  {
-    vignette: "黄タグの傷病者。呼びかけにはっきり反応でき、気道も開通している。呼吸数22回/分、SpO2 97%。脈拍88回/分、血圧118/76mmHgで橈骨動脈も良好に触知できる。体温は36.5℃。下腿の骨折がある。",
-    correct: NONE_KEY,
-    explain: "意識・気道・呼吸・循環・体温のいずれにも異常がないため、<b>黄タグを維持</b>します。骨折があっても、生理学的な異常が見つからなければ黄のまま二次トリアージを進めます。"
-  },
-  {
-    vignette: "黄タグの傷病者。意識は清明で気道も良好。呼吸数18回/分、SpO2 98%。脈拍76回/分、血圧120/78mmHgで橈骨動脈も良好。体温は36.8℃。骨折がある。",
-    correct: NONE_KEY,
-    explain: "生理学的評価のいずれにも該当項目がないため<b>黄タグを維持</b>します。異常がなければ、次は解剖学的評価に進みます。"
-  },
-  {
-    vignette: "黄タグの傷病者。強くつねっても払いのけるような反応しか示さず、声かけには反応しない。気道は開通している。呼吸数20回/分、SpO2 96%。脈拍84回/分、血圧116/74mmHgで橈骨動脈も良好に触知できる。体温36.4℃。",
-    correct: "意識",
-    explain: "痛み刺激にしか反応せず、呼びかけに反応しない状態はJCS2桁以上相当の意識障害です。生理学的評価の該当項目として<b>赤タグ</b>に格上げします。"
-  },
-  {
-    vignette: "黄タグの傷病者。仰向けで寝ていると喉の奥からゴロゴロという音がして、呼吸が苦しそうに見える。呼びかけには開眼できる。呼吸数22回/分、SpO2 95%。脈拍90回/分、血圧118/72mmHgで橈骨動脈も良好に触知できる。体温36.6℃。",
-    correct: "気道",
-    explain: "いびきのような音は舌根沈下による気道の狭窄・閉塞を示唆します。生理学的評価の該当項目として<b>赤タグ</b>に格上げします。"
-  },
-  {
-    vignette: "黄タグの傷病者。意識清明で気道も開通している。呼吸数20回/分。パルスオキシメーターでSpO2を測定すると88%だった。脈拍84回/分、血圧118/74mmHgで橈骨動脈も良好に触知できる。体温36.6℃。",
-    correct: "呼吸",
-    explain: "SpO2が90%未満は生理学的評価の該当項目です。酸素化の悪化を示すサインとして<b>赤タグ</b>に格上げします。"
-  },
-  {
-    vignette: "黄タグの傷病者。意識清明で気道も開通している。呼吸数20回/分、SpO2 97%。脈拍88回/分で橈骨動脈は良好に触知できる。血圧を測ると88/50mmHgだった。体温36.4℃。",
-    correct: "循環",
-    explain: "収縮期血圧が90未満は生理学的評価の該当項目です。循環不全のサインとして<b>赤タグ</b>に格上げします。"
-  },
-  {
-    vignette: "黄タグの傷病者。長時間雨に濡れていた。意識清明で気道も開通している。呼吸数16回/分、SpO2 98%。脈拍78回/分、血圧116/72mmHgで橈骨動脈も良好に触知できる。体温を測ると34.8℃だった。",
-    correct: "体温",
-    explain: "体温が35℃以下の低体温は生理学的評価の該当項目です。<b>赤タグ</b>に格上げします。"
-  },
-  {
-    vignette: "黄タグの傷病者。意識清明で気道も良好。呼吸数20回/分、SpO2 98%、脈拍80回/分、血圧120/70mmHg、体温36.6℃。骨折がある。",
-    correct: NONE_KEY,
-    explain: "意識・気道・呼吸・循環・体温のすべてが正常範囲のため、<b>黄タグを維持</b>します。"
-  }
-];
-
-/* --- PAT法：第2段階（解剖学的評価）身体所見 → 疑われる病態 --- */
 const ANAT_CONDITIONS = [
   "（開放性）頭蓋骨骨折",
   "頭蓋底骨折",
@@ -960,107 +891,83 @@ const ANAT_CONDITIONS = [
   "専門医の治療を要する重症熱傷"
 ];
 
-const ANAT_CASES = [
-  { vignette:"頭部を強く打ち、傷口から頭の骨が変形しているのが見える。", correct:"（開放性）頭蓋骨骨折",
-    explain:"開放創を伴う頭蓋骨の変形は<b>（開放性）頭蓋骨骨折</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"頭部を強打した後、鼻や耳から透明でサラサラした液体が漏れ出ている。", correct:"頭蓋底骨折",
-    explain:"鼻や耳からの透明な液体の漏出（髄液漏）は<b>頭蓋底骨折</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"顔にやけどを負い、鼻毛が焦げ、口や鼻の中にすすが付着している。声もかすれている。", correct:"顔面、気道熱傷",
-    explain:"顔面熱傷・鼻毛焼灼・口鼻腔内のすす付着・嗄声は<b>顔面、気道熱傷</b>を疑う所見です。気道の腫脹で窒息する危険があり<b>赤タグ</b>に格上げします。" },
-  { vignette:"胸を強打した傷病者。首から胸にかけて押すと雪を握ったような感触（握雪感）があり、のどぼとけの位置もいつもと違う場所に変形している。", correct:"緊張性気胸、気管・気道損傷",
-    explain:"頸部の握雪感（皮下気腫）に気管の変形が加わると<b>緊張性気胸、気管・気道損傷</b>を疑います。解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"ショック状態の傷病者。首の血管が普段よりもパンパンに膨らんで見える。", correct:"心タンポナーデ",
-    explain:"ショックを伴う首の血管の著しい怒張は<b>心タンポナーデ</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"胸部外傷後、のどぼとけの位置が左右どちらかに大きくずれている。", correct:"緊張性気胸、気管・気道損傷",
-    explain:"気管の偏位は<b>緊張性気胸、気管・気道損傷</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"胸を強打した傷病者。胸の皮膚を押すと雪を握ったようなプチプチという感触がある。気管の位置に変化はない。", correct:"気胸、気管・気管支損傷",
-    explain:"気管の変形を伴わない皮下の握雪感は<b>気胸、気管・気管支損傷</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"胸を強打した傷病者。聴診すると片側の呼吸音が明らかに弱く、その部分を叩くと通常より高く響くような音がする（鼓音）。", correct:"気胸、気管・気管支損傷",
-    explain:"呼吸音の減弱に加えて、打診で鼓音（過共鳴音）がするのは、胸腔内に空気が溜まっているサインです。<b>気胸、気管・気管支損傷</b>を疑う所見であり、解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"バスの横転事故に巻き込まれた傷病者。胸郭の動きが左右非対称で、息を吸うと胸の一部だけ逆にへこむように動く（奇異呼吸）。", correct:"フレイルチェスト",
-    explain:"胸郭動揺・奇異呼吸は<b>フレイルチェスト</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"胸壁に穴が開いており、呼吸のたびにその傷口からヒュー、ヒューと空気が出入りする音が聞こえる。", correct:"開放性気胸",
-    explain:"胸部創からの気泡混じりの空気の出入りは<b>開放性気胸</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"腹部が張って硬く、押すと強い抵抗があり、腸の一部が傷口から出てしまっている。", correct:"腹腔内出血、腹部臓器損傷",
-    explain:"腹部膨隆・腹壁緊張・腸管脱出は<b>腹腔内出血、腹部臓器損傷</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"骨盤を押すと痛みと不安定な動揺があり、左右の脚の長さが違って見える。", correct:"骨盤骨折",
-    explain:"骨盤の圧痛・動揺・下肢長差は<b>骨盤骨折</b>を疑う所見です。大量出血を伴いやすく、解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"両方の太ももが変形し、出血と腫れ、強い圧痛があり、脚の長さも左右で違う。", correct:"両側大腿骨骨折",
-    explain:"大腿の変形・出血・腫脹・圧痛・下肢長差は<b>両側大腿骨骨折</b>を疑う所見です。大量出血のリスクが高く、解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"両手足に力が入らず麻痺しており、呼吸の仕方もお腹だけが不自然に膨らむような呼吸になっている。", correct:"上位脊髄損傷",
-    explain:"四肢麻痺と奇異（腹式）呼吸は<b>上位脊髄損傷</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"機械に腕を巻き込まれ、広範囲にわたって皮膚がべろりと剥がれ落ちている。", correct:"デグロービング損傷",
-    explain:"四肢の広範囲の軟部組織剥脱は<b>デグロービング損傷</b>を疑う所見です。大量出血や壊死のリスクが高く、解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"倒壊した建物の下に4時間以上挟まれていた傷病者で、救出後の尿がポートワインのような赤黒い色をしている。", correct:"圧挫症候群（クラッシュシンドローム）",
-    explain:"長時間の挟まれと赤黒い尿は<b>圧挫症候群（クラッシュシンドローム）</b>を疑う所見です。救出直後に急変することがあり、解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"刃物によって首・胸・お腹の付け根あたりを刺されており、傷が体の奥深くまで貫通している。", correct:"重要臓器損傷、大血管損傷",
-    explain:"頭頸部・体幹部・そけい部への穿通性外傷は<b>重要臓器損傷、大血管損傷</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"大規模な事故現場で、腕の一部が完全に切断されてしまっている。", correct:"専門医の治療を要する切断肢",
-    explain:"四肢の切断は<b>専門医の治療を要する切断肢</b>にあたります。解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"外傷を伴い、体表の15%以上に及ぶ広範囲のやけどを負っている。ショック状態も見られる。", correct:"専門医の治療を要する重症熱傷",
-    explain:"外傷を伴う15%以上の熱傷、またはショックを伴う広範囲熱傷は<b>専門医の治療を要する重症熱傷</b>にあたります。解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"黄タグの傷病者。上腕が変形し腫れ上がっている。", correct:NONE_KEY,
-    explain:"上腕の変形は骨折を疑わせる所見ですが、解剖学的評価の該当項目（頭蓋骨骨折、緊張性気胸、腹腔内出血など生命に関わる所見）には当てはまりません。単独の四肢骨折だけでは<b>黄タグを維持</b>します。" },
-  { vignette:"黄タグの傷病者。指を一部切断してしまっている。", correct:NONE_KEY,
-    explain:"指の断裂は痛ましい外傷ですが、解剖学的評価の「四肢の切断」は上腕や大腿など、より中枢側の主要な切断を想定した基準です。指先の損傷だけではこの基準には該当せず<b>黄タグを維持</b>します。" },
-  { vignette:"頭部を強打した後、両目の周りに内出血が広がっている（パンダの目のような外観）。耳からも透明な液体が漏れている。", correct:"頭蓋底骨折",
-    explain:"眼窩周囲の内出血（パンダの目）や耳からの透明な液体の漏出は<b>頭蓋底骨折</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"胸を刺された傷病者。片側の胸を軽く叩くと、通常と違って鈍い音がする。", correct:"血気胸",
-    explain:"打診で鈍い音がする（濁音）のは胸腔内に血液が溜まっているサインで、<b>血気胸</b>を疑います。解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"転落した傷病者。息を吐くときに胸の一部が逆に膨らむような、不自然な胸の動きがある。", correct:"フレイルチェスト",
-    explain:"呼吸のたびに胸の一部が逆方向に動く奇異呼吸は<b>フレイルチェスト</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"胸に木片が刺さったままになっており、その周囲の傷口から空気が漏れる音がする。", correct:"開放性気胸",
-    explain:"胸壁の傷口からの空気の出入りは<b>開放性気胸</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"腹部を強く打った傷病者。時間が経つにつれてお腹がどんどん張ってきて、顔色も悪くなってきている。", correct:"腹腔内出血、腹部臓器損傷",
-    explain:"腹部の膨隆が進行し顔色不良を伴う場合は<b>腹腔内出血、腹部臓器損傷</b>を疑います。解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"多重衝突事故に巻き込まれた傷病者。骨盤の左右を軽く押すと激痛を訴え、下肢の長さにも左右差がある。", correct:"骨盤骨折",
-    explain:"骨盤の圧痛と下肢長差は<b>骨盤骨折</b>を疑う所見です。大量出血を伴いやすく、解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"重機に手を挟まれ、手の皮膚が手袋を脱ぐように剥がれてしまっている。", correct:"デグロービング損傷",
-    explain:"手袋を脱ぐように皮膚がめくれる損傷は<b>デグロービング損傷</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"土砂崩れで下半身が長時間埋まっていた傷病者。救出後、下肢の感覚がなく、尿の色も濃い赤褐色をしている。", correct:"圧挫症候群（クラッシュシンドローム）",
-    explain:"長時間の圧迫後の下肢の感覚障害と赤褐色尿は<b>圧挫症候群（クラッシュシンドローム）</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"鉄パイプが脇腹から体幹を貫通しており、まだ刺さったままになっている。", correct:"重要臓器損傷、大血管損傷",
-    explain:"体幹部への穿通性外傷は<b>重要臓器損傷、大血管損傷</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"顔と両腕に熱湯を浴び、受傷面積が体表の20%に達する広範囲熱傷を負っている。", correct:"専門医の治療を要する重症熱傷",
-    explain:"体表の20%に及ぶ広範囲熱傷は<b>専門医の治療を要する重症熱傷</b>にあたります。解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"黄タグの傷病者。避難中に転倒して肩を脱臼した。", correct:NONE_KEY,
-    explain:"肩の脱臼は強い痛みを伴う外傷ですが、解剖学的評価の該当項目には含まれません。単独の脱臼だけでは<b>黄タグを維持</b>します。" },
-  { vignette:"黄タグの傷病者。手首を骨折している。", correct:NONE_KEY,
-    explain:"手首の骨折は治療が必要な外傷ですが、解剖学的評価の該当項目には含まれません。単独の四肢骨折だけでは<b>黄タグを維持</b>します。" }
-];
-
 /* --- PAT法：第3段階（受傷機転） --- */
 const MECH_ORDER = ["体幹部の挟圧","1肢以上の挟圧（4時間以上）","高所墜落","爆発","異常温度環境","有毒ガス発生","汚染（NBC）"];
 
-const MECH_CASES = [
-  { vignette:"倒壊した建物の梁の下敷きになり、長時間にわたって体が挟まれていた状態で救出された。", correct:"体幹部の挟圧",
-    explain:"体幹部を強い外力で挟まれた場合、外見上は軽症に見えても内臓や血管に重大な損傷を負っていることがあります。受傷機転の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"倒壊物の下敷きになり、脚が抜け出せないまま4時間以上その状態が続いていた。", correct:"1肢以上の挟圧（4時間以上）",
-    explain:"四肢を長時間（4時間以上）挟まれると、圧挫症候群（クラッシュシンドローム）を発症するリスクが高まります。受傷機転の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"作業中に足場から5階相当の高さを転落した。", correct:"高所墜落",
-    explain:"高所からの墜落は、その場では症状がはっきりしなくても体幹部や内臓に重大な損傷を負っている可能性があります。受傷機転の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"近くで発生したガス爆発に巻き込まれ、その爆風を受けて倒れていた。", correct:"爆発",
-    explain:"爆発による爆風は、肺や鼓膜など内部の臓器に外見からは分からない損傷を与えることがあります。受傷機転の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"極寒の屋外に長時間取り残されていた。", correct:"異常温度環境",
-    explain:"低体温や熱中症などにつながる異常な温度環境に長時間さらされた場合は、受傷機転の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"化学工場の事故現場で、有毒ガスが充満する中に取り残されていた。", correct:"有毒ガス発生",
-    explain:"有毒ガスへの曝露は、時間が経ってから症状が現れることがあります。受傷機転の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"原子力災害の現場で、放射性物質による汚染の疑いがある区域に長時間いた。", correct:"汚染（NBC）",
-    explain:"核・生物・化学（NBC）物質による汚染の疑いがある場合は、受傷機転の該当項目として<b>赤タグ</b>に格上げします。除染など特別な対応も必要になります。" },
-  { vignette:"黄タグの傷病者。避難する途中で足を滑らせて転倒した。", correct:NONE_KEY,
-    explain:"受傷機転にも該当する項目がないため、<b>黄タグを維持</b>します。第1〜第3段階のいずれにも異常がなければ、そのまま黄タグとして扱います。" },
-  { vignette:"黄タグの傷病者。避難中に自転車で転倒し、擦り傷を負った。", correct:NONE_KEY,
-    explain:"受傷機転に該当する項目がないため<b>黄タグを維持</b>します。転倒そのものは、挟圧や墜落などのリスクの高い機転にはあたりません。" },
-  { vignette:"花火工場で爆発事故が発生し、その場に居合わせて吹き飛ばされた。", correct:"爆発",
-    explain:"爆発による爆風は、外見上目立った外傷がなくても肺や鼓膜に損傷を負っていることがあります。受傷機転の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"屋根の上から地面まで転落した。", correct:"高所墜落",
-    explain:"高所からの墜落は、その場で症状がはっきりしなくても体幹部や内臓に重大な損傷を負っている可能性があります。受傷機転の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"多重衝突事故で、変形した車体と座席の間に上半身が入り込み、強く圧迫され続けた状態で救出された。", correct:"体幹部の挟圧",
-    explain:"体幹部を強い外力で挟まれた場合、外見上は軽症に見えても内臓や血管に重大な損傷を負っていることがあります。受傷機転の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"一酸化炭素が充満した部屋に長時間閉じ込められていた。", correct:"有毒ガス発生",
-    explain:"有毒ガスへの曝露は、時間が経ってから症状が現れることがあります。受傷機転の該当項目として<b>赤タグ</b>に格上げします。" },
-  { vignette:"黄タグの傷病者。避難所で椅子から立ち上がる際にバランスを崩して転倒した。", correct:NONE_KEY,
-    explain:"受傷機転にも該当する項目がないため、<b>黄タグを維持</b>します。" }
+/* --- PAT法モード：1人の患者を生理学的評価→解剖学的評価→受傷機転の順に評価する複合問題 --- */
+const PAT_COMPOUND_CASES = [
+  {
+    vignette: "60代女性。地震発生時、庭に出ており、揺れが収まるまでその場でしゃがんで待っていた。苦悶様の表情はなく、会話も落ち着いている。呼びかけにはっきり反応でき、気道も開通している。呼吸数18回/分、SpO2 97%。脈拍78回/分、血圧118/74mmHgで橈骨動脈も良好に触知できる。体温36.6℃。手首に軽い擦り傷がある。",
+    phys: { correct: NONE_KEY, explain: "意識・気道・呼吸・循環・体温のいずれにも異常がないため、<b>黄タグを維持</b>します。" },
+    anat: { correct: NONE_KEY, explain: "手首の擦り傷は解剖学的評価の該当項目には含まれません。<b>黄タグを維持</b>します。" },
+    mech: { correct: NONE_KEY, explain: "特に危険な受傷機転はなかったため、<b>黄タグを維持</b>します。" }
+  },
+  {
+    vignette: "40代男性。列車が急停止した際、座席にしっかり座っていたため、体は大きく動かなかった。表情は落ち着いており、苦痛の訴えも少ない。意識清明で気道も開通している。呼吸数20回/分、SpO2 98%。脈拍82回/分、血圧122/78mmHgで橈骨動脈も良好に触知できる。体温36.7℃。膝に打撲による腫れがある。",
+    phys: { correct: NONE_KEY, explain: "意識・気道・呼吸・循環・体温のいずれにも異常がないため、<b>黄タグを維持</b>します。" },
+    anat: { correct: NONE_KEY, explain: "膝の打撲は解剖学的評価の該当項目には含まれません。<b>黄タグを維持</b>します。" },
+    mech: { correct: NONE_KEY, explain: "特に危険な受傷機転はなかったため、<b>黄タグを維持</b>します。" }
+  },
+  {
+    vignette: "30代女性。倒壊現場から救出された。顔色がやや悪く、呼吸が浅い。意識清明で気道も開通している。呼吸数20回/分。パルスオキシメーターを装着すると、SpO2は87%だった。脈拍84回/分、血圧118/74mmHgで橈骨動脈も良好に触知できる。体温36.5℃。腕に擦り傷がある。",
+    phys: { correct: "呼吸", explain: "SpO2が90%未満は生理学的評価の該当項目です。酸素化の悪化を示すサインとして<b>赤タグ</b>に格上げします。" },
+    anat: { correct: NONE_KEY, explain: "腕の擦り傷は解剖学的評価の該当項目には含まれません。<b>黄タグを維持</b>します。" },
+    mech: { correct: NONE_KEY, explain: "特に危険な受傷機転はなかったため、<b>黄タグを維持</b>します。" }
+  },
+  {
+    vignette: "50代男性。避難する途中で人混みに押され、少しよろめいた程度だった。顔色がやや蒼白で、皮膚も冷たい。意識清明で気道も開通している。呼吸数18回/分、SpO2 96%。脈を測ると1分間に128回で、橈骨動脈の触れも弱い。血圧は100/64mmHg。体温36.4℃。足首に軽い捻挫がある。",
+    phys: { correct: "循環", explain: "脈拍が120以上/分、あるいは橈骨動脈が弱い・触れない場合は生理学的評価の該当項目です。<b>赤タグ</b>に格上げします。" },
+    anat: { correct: NONE_KEY, explain: "足首の捻挫は解剖学的評価の該当項目には含まれません。<b>黄タグを維持</b>します。" },
+    mech: { correct: NONE_KEY, explain: "特に危険な受傷機転はなかったため、<b>黄タグを維持</b>します。" }
+  },
+  {
+    vignette: "40代女性。倒れてきた棚を避けようとして転倒し、家具の角に胸をぶつけた。息苦しそうな様子はあるが、会話はできる。意識清明で気道も開通している。呼吸数20回/分、SpO2 96%。脈拍86回/分、血圧120/76mmHgで橈骨動脈も良好に触知できる。体温36.6℃。胸を強打しており、聴診すると片側の呼吸音が明らかに弱く、その部分を叩くと通常と違って鈍い音がする。",
+    phys: { correct: NONE_KEY, explain: "意識・気道・呼吸・循環・体温のいずれにも異常がないため、<b>黄タグを維持</b>します。" },
+    anat: { correct: "血気胸", explain: "打診で鈍い音がする（濁音）のは胸腔内に血液が溜まっているサインで、<b>血気胸</b>を疑います。解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
+    mech: { correct: NONE_KEY, explain: "特に危険な受傷機転はなかったため、<b>黄タグを維持</b>します。" }
+  },
+  {
+    vignette: "60代男性。階段を降りている途中に足を滑らせて転倒した。痛みで顔をしかめているが、呼吸は落ち着いている。意識清明で気道も開通している。呼吸数18回/分、SpO2 98%。脈拍80回/分、血圧118/72mmHgで橈骨動脈も良好に触知できる。体温36.5℃。骨盤の左右を軽く押すと激痛を訴え、下肢の長さにも左右差がある。",
+    phys: { correct: NONE_KEY, explain: "意識・気道・呼吸・循環・体温のいずれにも異常がないため、<b>黄タグを維持</b>します。" },
+    anat: { correct: "骨盤骨折", explain: "骨盤の圧痛・動揺・下肢長差は<b>骨盤骨折</b>を疑う所見です。大量出血を伴いやすく、解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
+    mech: { correct: NONE_KEY, explain: "特に危険な受傷機転はなかったため、<b>黄タグを維持</b>します。" }
+  },
+  {
+    vignette: "30代男性。非常階段が崩れ、3階相当の高さから転落した。目立った出血はなく、会話も可能。意識清明で気道も開通している。呼吸数20回/分、SpO2 97%。脈拍84回/分、血圧116/74mmHgで橈骨動脈も良好に触知できる。体温36.6℃。背中に打撲による腫れがある。",
+    phys: { correct: NONE_KEY, explain: "意識・気道・呼吸・循環・体温のいずれにも異常がないため、<b>黄タグを維持</b>します。" },
+    anat: { correct: NONE_KEY, explain: "背中の打撲は解剖学的評価の該当項目には含まれません。<b>黄タグを維持</b>します。" },
+    mech: { correct: "高所墜落", explain: "高所からの墜落は、その場では症状がはっきりしなくても体幹部や内臓に重大な損傷を負っている可能性があります。受傷機転の該当項目として<b>赤タグ</b>に格上げします。" }
+  },
+  {
+    vignette: "50代女性。工場の設備から漏れ出た薬品臭のする煙が充満する部屋に、しばらく閉じ込められていた。咳き込む様子もなく、落ち着いている。意識清明で気道も開通している。呼吸数18回/分、SpO2 96%。脈拍80回/分、血圧118/76mmHgで橈骨動脈も良好に触知できる。体温36.5℃。顔に軽いすり傷がある。",
+    phys: { correct: NONE_KEY, explain: "意識・気道・呼吸・循環・体温のいずれにも異常がないため、<b>黄タグを維持</b>します。" },
+    anat: { correct: NONE_KEY, explain: "顔のすり傷は解剖学的評価の該当項目には含まれません。<b>黄タグを維持</b>します。" },
+    mech: { correct: "有毒ガス発生", explain: "有毒ガスへの曝露は、時間が経ってから症状が現れることがあります。受傷機転の該当項目として<b>赤タグ</b>に格上げします。" }
+  },
+  {
+    vignette: "40代男性。倒れてきた家具を避けようとして転倒し、床に胸を強く打ちつけた。呼吸のたびにいびきのような音が聞こえ、苦しそうな様子。舌が喉の奥に落ち込み、いびきのような音を立てながら呼吸している。呼びかけには開眼できる。呼吸数22回/分、SpO2 94%。脈拍90回/分、血圧120/76mmHgで橈骨動脈も良好に触知できる。体温36.6℃。胸郭の動きが左右非対称で、息を吸うと胸の一部だけ逆にへこむように動いている。",
+    phys: { correct: "気道", explain: "舌根沈下による気道閉塞は生理学的評価の該当項目です。窒息につながる危険な状態のため<b>赤タグ</b>に格上げします。" },
+    anat: { correct: "フレイルチェスト", explain: "胸郭動揺・奇異呼吸は<b>フレイルチェスト</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
+    mech: { correct: NONE_KEY, explain: "特に危険な受傷機転はなかったため、<b>黄タグを維持</b>します。" }
+  },
+  {
+    vignette: "70代男性。倒壊現場で、片脚が4時間以上瓦礫の下から抜け出せない状態が続いていた。顔色が悪く、震えている様子が見られる。意識清明で気道も開通している。呼吸数18回/分、SpO2 97%。脈拍82回/分、血圧118/74mmHgで橈骨動脈も良好に触知できる。体温を測ると34.5℃だった。腕に打撲による腫れがある。",
+    phys: { correct: "体温", explain: "体温が35℃以下の低体温は生理学的評価の該当項目です。全身状態の悪化を示すサインとして<b>赤タグ</b>に格上げします。" },
+    anat: { correct: NONE_KEY, explain: "腕の打撲は解剖学的評価の該当項目には含まれません。<b>黄タグを維持</b>します。" },
+    mech: { correct: "1肢以上の挟圧（4時間以上）", explain: "四肢を長時間（4時間以上）挟まれると、圧挫症候群（クラッシュシンドローム）を発症するリスクが高まります。受傷機転の該当項目として<b>赤タグ</b>に格上げします。" }
+  },
+  {
+    vignette: "50代男性。倒壊した建物の下敷きになり、長時間にわたって体が挟まれていた状態で救出された。顔色はやや優れないが、会話は可能。意識清明で気道も開通している。呼吸数20回/分、SpO2 97%。脈拍84回/分、血圧120/76mmHgで橈骨動脈も良好に触知できる。体温36.5℃。上着をめくって確認すると、腹部が板のように硬く張り、押し返すような強い抵抗がある。",
+    phys: { correct: NONE_KEY, explain: "意識・気道・呼吸・循環・体温のいずれにも異常がないため、<b>黄タグを維持</b>します。" },
+    anat: { correct: "腹腔内出血、腹部臓器損傷", explain: "腹部膨隆・腹壁緊張は<b>腹腔内出血、腹部臓器損傷</b>を疑う所見です。解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
+    mech: { correct: "体幹部の挟圧", explain: "体幹部を強い外力で挟まれた場合、外見上は軽症に見えても内臓や血管に重大な損傷を負っていることがあります。受傷機転の該当項目として<b>赤タグ</b>に格上げします。" }
+  },
+  {
+    vignette: "30代男性。工場内で爆発が発生し、その場に居合わせて吹き飛ばされた。ぼんやりとした様子で、周囲の状況を正しく認識できていない。呼びかけても要領を得ない返答しかなく、興奮して落ち着きなく動き回っている。気道は開通している。呼吸数20回/分、SpO2 95%。脈拍88回/分、血圧116/72mmHgで橈骨動脈も良好に触知できる。体温36.4℃。上着を脱がせて確認すると、首から胸にかけて雪を握ったような感触があり、のどぼとけの位置にも変化がある。",
+    phys: { correct: "意識", explain: "呼びかけへの反応がない、または不穏な状態はJCS2桁以上相当の意識障害を示し、生理学的評価の該当項目です。1つでも該当すれば<b>赤タグ</b>に格上げします。" },
+    anat: { correct: "緊張性気胸、気管・気道損傷", explain: "頸部の握雪感（皮下気腫）に気管の変形が加わると<b>緊張性気胸、気管・気道損傷</b>を疑います。解剖学的評価の該当項目として<b>赤タグ</b>に格上げします。" },
+    mech: { correct: "爆発", explain: "爆発による爆風は、肺や鼓膜など内部の臓器に外見からは分からない損傷を与えることがあります。受傷機転の該当項目として<b>赤タグ</b>に格上げします。" }
+  }
 ];
 
 /* --- シナリオチャレンジ：同一患者を一次→二次と続けて評価する --- */
@@ -1444,7 +1351,7 @@ const TAGS = {
   black:{label:"黒",num:"区分0",tier:"死亡・救命困難群"}
 };
 
-const PAT_SAMPLE_SIZE = 16;
+const PAT_SAMPLE_SIZE = 15;
 const START_SAMPLE_SIZE = 16;
 
 function patTag(c){ return c.correct === NONE_KEY ? "yellow" : "red"; }
@@ -1477,6 +1384,8 @@ const state = {
   showQuit: false,
   currentOptions: null,   // shuffled answer options for the current anat case
   multiSelected: [],      // selected keys for the current PAT-kind multi-select question
+  patPending: {phys:null, anat:null, mech:null}, // accumulated answers for the current PAT patient triplet
+  lastTripletResult: null, // combined result shown after all 3 PAT stages are answered
   // --- scenario challenge state ---
   scenarioPhase: null,    // triage1 | board | triage2 | triage2none | review
   scenarioPatients: [],
@@ -1494,17 +1403,22 @@ function quitSession(){
 }
 
 function buildPatPool(){
-  return [
-    ...PHYS_CASES.map(c=>({...c, kind:"pat", sub:"phys"})),
-    ...ANAT_CASES.map(c=>({...c, kind:"pat", sub:"anat"})),
-    ...MECH_CASES.map(c=>({...c, kind:"pat", sub:"mech"}))
-  ];
+  const patients = shuffle(PAT_COMPOUND_CASES);
+  const total = patients.length;
+  return patients.flatMap((p, i)=>{
+    const num = i + 1;
+    return [
+      {kind:"pat", sub:"phys", correct:p.phys.correct, vignette:p.vignette, explain:p.phys.explain, compoundNum:num, compoundTotal:total},
+      {kind:"pat", sub:"anat", correct:p.anat.correct, vignette:p.vignette, explain:p.anat.explain, compoundNum:num, compoundTotal:total},
+      {kind:"pat", sub:"mech", correct:p.mech.correct, vignette:p.vignette, explain:p.mech.explain, compoundNum:num, compoundTotal:total}
+    ];
+  });
 }
 
 function freshShuffledBatch(source){
   return source === "start"
     ? shuffle(START_CASES).map(c=>({...c, kind:"start"}))
-    : shuffle(buildPatPool());
+    : buildPatPool();
 }
 
 function buildScenarioPatients(pool){
@@ -1540,7 +1454,7 @@ function startMode(mode){
     const pool = shuffle(START_CASES).map(c=>({...c, kind:"start"}));
     state.cases = mode === "start-endless" ? pool : pool.slice(0, START_SAMPLE_SIZE);
   } else if(mode === "pat" || mode === "pat-endless"){
-    const pool = shuffle(buildPatPool());
+    const pool = buildPatPool();
     state.cases = mode === "pat-endless" ? pool : pool.slice(0, PAT_SAMPLE_SIZE);
   } else {
     const mixed = [...START_CASES.map(c=>({...c,kind:"start"})), ...buildPatPool()];
@@ -1597,23 +1511,55 @@ function toggleMultiSelect(key){
   render();
 }
 
+function gradePatTriplet(){
+  const mechCase = currentCase();
+  const anatCase = state.cases[state.index - 1];
+  const physCase = state.cases[state.index - 2];
+  const items = [
+    { c: physCase, value: state.patPending.phys },
+    { c: anatCase, value: state.patPending.anat },
+    { c: mechCase, value: state.patPending.mech }
+  ];
+  state.lastTripletResult = items.map(({c, value})=>{
+    const arr = Array.isArray(value) ? value : (value === null ? [] : [value]);
+    const correct = arr.length === 1 && arr[0] === c.correct;
+    const correctLabel = labelForKey(c.sub, c.correct);
+    const chosenLabel = formatMultiLabel(c.sub, arr);
+    if(correct) state.score += 1;
+    else state.mistakes.push({vignette: c.vignette, correctLabel, chosenLabel, explain: c.explain});
+    return {sub: c.sub, correct, correctLabel, chosenLabel, explain: c.explain};
+  });
+  state.patPending = {phys:null, anat:null, mech:null};
+}
+
 function selectAnswer(value){
   if(state.answered) return;
   clearInterval(state.timerId);
+  const c = currentCase();
+
+  if(c.kind === "pat"){
+    state.patPending[c.sub] = value;
+    if(c.sub !== "mech"){
+      // move silently to the next stage of the same patient — no feedback yet
+      state.index += 1;
+      state.selected = null;
+      loadCaseOptions();
+      render();
+      return;
+    }
+    // mech stage submitted — grade all three stages together
+    state.answered = true;
+    state.selected = value;
+    gradePatTriplet();
+    render();
+    return;
+  }
+
   state.answered = true;
   state.selected = value;
-  const c = currentCase();
-  let correct, correctLabel, chosenLabel;
-  if(c.kind === "start"){
-    correct = value === c.tag;
-    correctLabel = TAGS[c.tag].label + "タグ";
-    chosenLabel = value ? TAGS[value].label + "タグ" : "時間切れ";
-  } else {
-    const selectedArr = Array.isArray(value) ? value : (value === null ? [] : [value]);
-    correct = selectedArr.length === 1 && selectedArr[0] === c.correct;
-    correctLabel = labelForKey(c.sub, c.correct);
-    chosenLabel = formatMultiLabel(c.sub, selectedArr);
-  }
+  const correct = value === c.tag;
+  const correctLabel = TAGS[c.tag].label + "タグ";
+  const chosenLabel = value ? TAGS[value].label + "タグ" : "時間切れ";
   if(correct) state.score += 1;
   else state.mistakes.push({vignette:c.vignette, correctLabel, chosenLabel, explain:c.explain});
   render();
@@ -1785,14 +1731,14 @@ function renderSelect(){
       <p>症例が尽きたら自動でシャッフルし直し、止めるまで何問でも続けられます。「終了」ボタンでいつでも結果を確認できます。</p>
     </button>
     <button class="mode-card pat" data-mode="pat">
-      <p class="m-eyebrow">二次トリアージ・全${PAT_SAMPLE_SIZE}問（ランダム出題）</p>
+      <p class="m-eyebrow">二次トリアージ・患者${Math.floor(PAT_SAMPLE_SIZE/3)}人分（ランダム出題）</p>
       <h3>PAT法モード</h3>
-      <p>黄タグの傷病者について、生理学的評価はどの項目に異常があるかを、解剖学的評価は身体所見からどの病態が疑われるかを、受傷機転はどの受傷状況に該当するかを選びます。時間制限はありません。</p>
+      <p>黄タグの傷病者1人につき、生理学的評価→解剖学的評価→受傷機転の順に、それぞれ該当する項目（なければ「該当なし」）を選んでいきます。ある患者は解剖学的所見だけに問題があったり、別の患者は生理学的所見と受傷機転の両方に問題があったりと、患者ごとに当てはまる項目は異なります。時間制限はありません。</p>
     </button>
     <button class="mode-card pat" data-mode="pat-endless">
-      <p class="m-eyebrow">エンドレス・全${PHYS_CASES.length + ANAT_CASES.length + MECH_CASES.length}症例からランダム出題</p>
+      <p class="m-eyebrow">エンドレス・患者${PAT_COMPOUND_CASES.length}人分からランダム出題</p>
       <h3>PAT法エンドレスモード</h3>
-      <p>生理学的・解剖学的・受傷機転の全症例プールから、止めるまで何問でも出題し続けます。</p>
+      <p>全患者の3段階評価プールから、止めるまで何人でも評価し続けます。</p>
     </button>
     <button class="mode-card mix" data-mode="scenario-train">
       <p class="m-eyebrow">シナリオ・患者${TRAIN_SCENARIO_CASES.length}人</p>
@@ -2024,7 +1970,10 @@ function renderGame(){
   const isMech = c.kind === "pat" && c.sub === "mech";
   const total = state.cases.length;
 
-  const displayTag = isStart ? c.tag : patTag(c);
+  const displayTag = isStart ? c.tag
+    : (c.kind === "pat" && state.answered)
+      ? ([state.cases[state.index-2], state.cases[state.index-1], c].some(cc=>cc.correct !== NONE_KEY) ? "red" : "yellow")
+      : patTag(c);
 
   let tabsHtml = "";
   if(isStart){
@@ -2059,33 +2008,42 @@ function renderGame(){
   }
 
   let feedbackHtml = "";
-  if(state.answered){
-    const selectedArr = Array.isArray(state.selected) ? state.selected : (state.selected===null?[]:[state.selected]);
-    const correct = isStart ? (state.selected === c.tag) : (selectedArr.length===1 && selectedArr[0] === c.correct);
+  if(state.answered && isStart){
+    const correct = state.selected === c.tag;
     const stampColor = `var(--tag-${displayTag})`;
     const stampText = `${TAGS[displayTag].label}タグ ${TAGS[displayTag].num}`;
-    const correctLabel = isStart ? "" : labelForKey(c.sub, c.correct);
-    const chosenLabel = isStart ? "" : formatMultiLabel(c.sub, selectedArr);
-    const pathTrailHtml = (isStart && c.path) ? buildPathTrailHtml(c.tag, c.path) : "";
-    const correctLabelTitle = isPhys ? "正しい異常項目：" : isMech ? "正しい受傷機転：" : "正しい病態：";
+    const pathTrailHtml = c.path ? buildPathTrailHtml(c.tag, c.path) : "";
     feedbackHtml = `
     <div class="feedback">
-      <span class="verdict ${correct?'ok':'ng'}">${correct?"正解":"不正解"}${(isStart && state.selected===null)?"（時間切れ）":""}</span>
+      <span class="verdict ${correct?'ok':'ng'}">${correct?"正解":"不正解"}${(state.selected===null)?"（時間切れ）":""}</span>
       <div>
         <span class="stamp" style="--stamp-color:${stampColor}">${stampText}</span>
       </div>
-      ${!isStart ? `<p class="explain"><b>${correctLabelTitle}</b>${correctLabel}</p>` : ""}
-      ${(!isStart && !correct) ? `<p class="explain"><b>あなたの選択：</b>${chosenLabel}</p>` : ""}
       <p class="explain">${c.explain}</p>
       ${pathTrailHtml}
       <button class="next-btn" id="btn-next">${(!state.endless && state.index+1>=total) ? "結果を見る" : "次の問題へ"}</button>
     </div>`;
+  } else if(state.answered && c.kind === "pat"){
+    const stageTitle = {phys:"生理学的評価", anat:"解剖学的評価", mech:"受傷機転"};
+    const resultBlocks = state.lastTripletResult.map(r=>`
+      <div class="feedback" style="border-top:1px dashed var(--border);padding-top:14px;margin-top:14px;">
+        <p class="path-title">${stageTitle[r.sub]}</p>
+        <span class="verdict ${r.correct?'ok':'ng'}">${r.correct?"正解":"不正解"}</span>
+        <p class="explain"><b>正しい判定：</b>${r.correctLabel}</p>
+        ${!r.correct ? `<p class="explain"><b>あなたの選択：</b>${r.chosenLabel}</p>` : ""}
+        <p class="explain">${r.explain}</p>
+      </div>`).join("");
+    feedbackHtml = `
+    ${resultBlocks}
+    <button class="next-btn" id="btn-next" style="margin-top:16px;">${(!state.endless && state.index+1>=total) ? "結果を見る" : "次の患者へ"}</button>`;
   }
 
+  const patientPrefix = (c.kind === "pat" && c.compoundNum) ? `患者${c.compoundNum}／${c.compoundTotal}・` : "";
   const caseLabel = isStart ? "一次トリアージ・START法"
-    : isPhys ? "二次トリアージ・PAT法（第1段階：生理学的評価）"
-    : isMech ? "二次トリアージ・PAT法（第3段階：受傷機転）"
-    : "二次トリアージ・PAT法（第2段階：解剖学的評価）";
+    : (state.answered && c.kind === "pat") ? `${patientPrefix}評価結果`
+    : isPhys ? `${patientPrefix}第1段階：生理学的評価`
+    : isMech ? `${patientPrefix}第3段階：受傷機転`
+    : `${patientPrefix}第2段階：解剖学的評価`;
 
   const topbarProgress = state.endless
     ? `<span class="endless-badge">ENDLESS</span><span>${state.index+1}問目</span><div class="progress-track" style="visibility:hidden;"></div>`
